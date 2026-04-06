@@ -9,6 +9,7 @@ import AddIcon from '@mui/icons-material/Add'
 import { listLessons, deleteLesson } from '../api/lessonsApi'
 import { useAuth } from '../context/AuthContext'
 import LessonFormDialog from '../components/lessons/LessonFormDialog'
+import CalendarToolbar from '../components/lessons/CalendarToolbar'
 import LessonDetailDrawer from '../components/lessons/LessonDetailDrawer'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 
@@ -124,6 +125,7 @@ export default function LessonsPage() {
           popup
           views={['month', 'week', 'day', 'agenda']}
           defaultView="month"
+          components={{ toolbar: CalendarToolbar }}
         />
       </Box>
 
