@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_cors import CORS
 from app.config import Config
@@ -16,7 +17,13 @@ def create_app():
 
     db.init_app(app)
     jwt.init_app(app)
-    CORS(app, origins=["http://localhost:5173"])
+
+    # Allow localhost for dev + Railway frontend URL for production
+    allowed_origins = ["http://localhost:5173"]
+    frontend_url = os.environ.get("FRONTEND_URL")
+    if frontend_url:
+        allowed_origins.append(frontend_url)
+    CORS(app, origins=allowed_origins)
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(users_bp, url_prefix="/api/users")
