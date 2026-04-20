@@ -23,7 +23,11 @@ def create_app():
     frontend_url = os.environ.get("FRONTEND_URL")
     if frontend_url:
         allowed_origins.append(frontend_url)
-    CORS(app, origins=allowed_origins)
+    CORS(app,
+         origins=allowed_origins,
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+         allow_headers=["Content-Type", "Authorization"],
+         supports_credentials=True)
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(users_bp, url_prefix="/api/users")
