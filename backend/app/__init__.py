@@ -19,10 +19,18 @@ def create_app():
     jwt.init_app(app)
 
     # Allow localhost for dev + Railway frontend URL for production
-    allowed_origins = ["http://localhost:5173"]
+    allowed_origins = [
+        "http://localhost:5173",
+        # Hardcoded production frontend URL as a guaranteed fallback
+        "https://mschool-frontend-production.up.railway.app",
+        # Backend's own domain to handle self-requests
+        "https://mschool-backend-production.up.railway.app",
+    ]
     frontend_url = os.environ.get("FRONTEND_URL")
-    if frontend_url:
+    print(f"[CORS] FRONTEND_URL env var: {frontend_url!r}")
+    if frontend_url and frontend_url not in allowed_origins:
         allowed_origins.append(frontend_url)
+    print(f"[CORS] Allowed origins: {allowed_origins}")
     CORS(app,
          origins=allowed_origins,
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
