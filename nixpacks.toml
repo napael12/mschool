@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "python311", "python311Packages.pip"]
+nixPkgs = ["nodejs_20", "python311"]
 
 [phases.build]
 cmds = [
   "cd frontend && npm install && npm run build && cd ..",
-  "pip install -r backend/requirements.txt"
+  "python3 -m venv .venv && .venv/bin/pip install -r backend/requirements.txt"
 ]
 
 [start]
-cmd = "cd backend && gunicorn run:app --bind 0.0.0.0:$PORT"
+cmd = "cd backend && ../.venv/bin/gunicorn run:app --bind 0.0.0.0:$PORT"
