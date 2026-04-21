@@ -10,16 +10,19 @@ from app.routes.metrics import metrics_bp
 from app.routes.library import library_bp
 from app.routes.credits import credits_bp
 
-STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
+# dist/ is placed next to the app/ package by the Dockerfile
+DIST_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'dist')
 
 
 def create_app():
-    app = Flask(__name__, static_folder=STATIC_DIR, static_url_path="")
+    app = Flask(__name__, static_folder=DIST_FOLDER, static_url_path='')
     app.config.from_object(Config)
 
     db.init_app(app)
     jwt.init_app(app)
 
+    # CORS only needed for local dev (React on :5173, Flask on :5000)
+    # In production both are on the same origin so CORS is not required
     CORS(app,
          origins=["http://localhost:5173"],
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -33,12 +36,13 @@ def create_app():
     app.register_blueprint(library_bp, url_prefix="/api/library")
     app.register_blueprint(credits_bp, url_prefix="/api/credits")
 
-    @app.route("/", defaults={"path": ""})
-    @app.route("/<path:path>")
+    # Serve React app for all non-API routes (supports React Router)
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
     def serve_frontend(path):
-        file_path = os.path.join(STATIC_DIR, path)
-        if path and os.path.exists(file_path):
-            return send_from_directory(STATIC_DIR, path)
-        return send_from_directory(STATIC_DIR, "index.html")
+        full_path = os.path.join(app.static_folder, path)
+        if path and os.path.exists(full_path):
+            return send_from_directory(app.static_folder, path)
+        return send_from_directory(app.static_folder, 'index.html')
 
     return app
