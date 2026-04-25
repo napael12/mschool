@@ -10,8 +10,7 @@ from app.routes.metrics import metrics_bp
 from app.routes.library import library_bp
 from app.routes.credits import credits_bp
 
-# dist/ is placed next to the app/ package by the Dockerfile
-DIST_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'dist')
+DIST_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static')
 
 
 def create_app():
