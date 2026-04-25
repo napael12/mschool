@@ -1,2 +1,0 @@
-[phases.setup]
-nixpkgs = ["nodejs_20", "python312"]
