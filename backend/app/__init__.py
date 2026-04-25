@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder=DIST_FOLDER, static_url_path='')
     app.config.from_object(Config)
 
     # ------------------------------------------------------------------ #
@@ -62,7 +62,7 @@ def create_app():
         allowed_origins.append(frontend_url)
     print(f"[CORS] Allowed origins: {allowed_origins}")
     CORS(app,
-         origins=allowed_origins,
+         origins=["http://localhost:5173"],
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
          allow_headers=["Content-Type", "Authorization"],
          supports_credentials=True)
