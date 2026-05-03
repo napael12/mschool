@@ -1,8 +1,8 @@
 import os
 import logging
 import traceback
-from flask import Flask, jsonify, g
-from flask_cors import CORS
+from flask import Flask, jsonify, g, send_from_directory
+from werkzeug.exceptions import HTTPException
 from app.config import Config
 from app.extensions import db, jwt
 from app.routes.auth import auth_bp
@@ -15,9 +15,13 @@ from app.routes.credits import credits_bp
 logger = logging.getLogger(__name__)
 
 
+STATIC_FOLDER = os.path.join(os.path.dirname(__file__), '..', 'static')
+
+
 def create_app():
-    app = Flask(__name__, static_folder=DIST_FOLDER, static_url_path='')
+    app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='')
     app.config.from_object(Config)
+    app.config['STATIC_FOLDER'] = STATIC_FOLDER
 
     # ------------------------------------------------------------------ #
     # Logging — emit every request and all errors to stdout so gunicorn   #
@@ -44,28 +48,6 @@ def create_app():
         raise
 
     jwt.init_app(app)
-
-    # ------------------------------------------------------------------ #
-    # CORS                                                                 #
-    # ------------------------------------------------------------------ #
-    # Allow localhost for dev + Railway frontend URL for production
-    allowed_origins = [
-        "http://localhost:5173",
-        # Hardcoded production frontend URL as a guaranteed fallback
-        "https://mschool-frontend-production.up.railway.app",
-        # Backend's own domain to handle self-requests
-        "https://mschool-backend-production.up.railway.app",
-    ]
-    frontend_url = os.environ.get("FRONTEND_URL")
-    print(f"[CORS] FRONTEND_URL env var: {frontend_url!r}")
-    if frontend_url and frontend_url not in allowed_origins:
-        allowed_origins.append(frontend_url)
-    print(f"[CORS] Allowed origins: {allowed_origins}")
-    CORS(app,
-         origins=["http://localhost:5173"],
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-         allow_headers=["Content-Type", "Authorization"],
-         supports_credentials=True)
 
     # ------------------------------------------------------------------ #
     # Request logging                                                      #
@@ -101,6 +83,8 @@ def create_app():
 
     @app.errorhandler(Exception)
     def _handle_unhandled(exc):
+        if isinstance(exc, HTTPException):
+            return exc
         logger.error(
             "Unhandled exception on %s %s:\n%s",
             request.method, request.path,
@@ -125,6 +109,15 @@ def create_app():
     app.register_blueprint(metrics_bp, url_prefix="/api/metrics")
     app.register_blueprint(library_bp, url_prefix="/api/library")
     app.register_blueprint(credits_bp, url_prefix="/api/credits")
+
+    # Serve React app for all non-API routes (supports React Router)
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve_frontend(path):
+        full_path = os.path.join(app.static_folder, path)
+        if path and os.path.exists(full_path):
+            return send_from_directory(app.static_folder, path)
+        return send_from_directory(app.static_folder, 'index.html')
 
     logger.info("All blueprints registered — app ready")
     return app
