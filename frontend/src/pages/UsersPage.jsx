@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import {
   Box, Typography, Card, Table, TableHead, TableBody, TableRow, TableCell,
   TableContainer, Avatar, Chip, IconButton, Button, TextField, InputAdornment,
-  CircularProgress, Snackbar, Alert,
+  CircularProgress, Snackbar, Alert, Tooltip,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import SearchIcon from '@mui/icons-material/Search'
-import { listUsers, createUser, updateUser, deleteUser, inviteUser } from '../api/usersApi'
+import VpnKeyIcon from '@mui/icons-material/VpnKey'
+import { listUsers, createUser, updateUser, deleteUser, inviteUser, adminSendPasswordReset } from '../api/usersApi'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import UserFormDialog from '../components/users/UserFormDialog'
 import InviteDialog from '../components/users/InviteDialog'
@@ -27,6 +28,7 @@ export default function UsersPage() {
   const [editUser, setEditUser] = useState(null)
   const [inviteOpen, setInviteOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [resetTarget, setResetTarget] = useState(null)
   const [snack, setSnack] = useState(null)
 
   const load = () => listUsers().then(setUsers).finally(() => setLoading(false))
@@ -66,6 +68,17 @@ export default function UsersPage() {
       load()
     } catch {
       setSnack({ severity: 'error', message: 'Error deleting user.' })
+    }
+  }
+
+  const handleSendReset = async () => {
+    try {
+      await adminSendPasswordReset(resetTarget.user_id)
+      setSnack({ severity: 'success', message: `Password reset email sent to ${resetTarget.email}.` })
+    } catch (err) {
+      setSnack({ severity: 'error', message: err.response?.data?.error || 'Failed to send reset email.' })
+    } finally {
+      setResetTarget(null)
     }
   }
 
@@ -150,6 +163,15 @@ export default function UsersPage() {
                       />
                     </TableCell>
                     <TableCell align="right">
+                      <Tooltip title="Send Password Reset">
+                        <IconButton
+                          size="small"
+                          color="warning"
+                          onClick={() => setResetTarget(u)}
+                        >
+                          <VpnKeyIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                       <IconButton
                         size="small"
                         onClick={() => { setEditUser(u); setFormOpen(true) }}
@@ -190,6 +212,14 @@ export default function UsersPage() {
         open={inviteOpen}
         onClose={() => setInviteOpen(false)}
         onInvite={handleInvite}
+      />
+
+      <ConfirmDialog
+        open={Boolean(resetTarget)}
+        title="Send Password Reset"
+        message={`Send a password reset email to ${resetTarget?.first_nm || ''} ${resetTarget?.last_nm || ''} (${resetTarget?.email})? This will bypass the daily limit.`}
+        onConfirm={handleSendReset}
+        onCancel={() => setResetTarget(null)}
       />
 
       <ConfirmDialog

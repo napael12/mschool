@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import {
   Box, Card, CardContent, TextField, Button, Typography,
-  Alert, CircularProgress, InputAdornment, IconButton,
+  Alert, CircularProgress, InputAdornment, IconButton, Link,
 } from '@mui/material'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
@@ -90,6 +90,12 @@ export default function SignInPage() {
             >
               {loading ? <CircularProgress size={22} color="inherit" /> : 'Sign In'}
             </Button>
+          </Box>
+
+          <Box mt={2} textAlign="center">
+            <Link component={RouterLink} to="/forgot-password" variant="body2">
+              Forgot your password?
+            </Link>
           </Box>
         </CardContent>
       </Card>

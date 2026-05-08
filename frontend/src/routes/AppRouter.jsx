@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import DashboardLayout from '../layouts/DashboardLayout'
 import SignInPage from '../pages/SignInPage'
+import ForgotPasswordPage from '../pages/ForgotPasswordPage'
+import ResetPasswordPage from '../pages/ResetPasswordPage'
 import DashboardPage from '../pages/DashboardPage'
 import UsersPage from '../pages/UsersPage'
 import LessonsPage from '../pages/LessonsPage'
@@ -13,6 +15,8 @@ export default function AppRouter() {
   return (
     <Routes>
       <Route path="/sign-in" element={<SignInPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       <Route
         element={

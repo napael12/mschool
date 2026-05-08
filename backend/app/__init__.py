@@ -11,6 +11,7 @@ from app.routes.lessons import lessons_bp
 from app.routes.metrics import metrics_bp
 from app.routes.library import library_bp
 from app.routes.credits import credits_bp
+import app.models  # noqa: F401 — ensure all models are registered before create_all
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,9 @@ def create_app():
     try:
         db.init_app(app)
         logger.info("SQLAlchemy initialised successfully")
+        with app.app_context():
+            db.create_all()
+            logger.info("db.create_all() completed")
     except Exception:
         logger.error("SQLAlchemy init_app failed:\n%s", traceback.format_exc())
         raise

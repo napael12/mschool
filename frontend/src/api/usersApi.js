@@ -14,3 +14,6 @@ export const updateUser = (id, data) => api.put(`/users/${id}`, data).then((r) =
 export const deleteUser = (id) => api.delete(`/users/${id}`).then((r) => r.data)
 
 export const inviteUser = (data) => api.post('/users/invite', data).then((r) => r.data)
+
+export const adminSendPasswordReset = (id) =>
+  api.post(`/users/${id}/send-reset`).then((r) => r.data)
