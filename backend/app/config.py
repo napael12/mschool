@@ -14,6 +14,6 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "mschool-dev-secret-change-in-production")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=8)
-    RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "re_LgW79W1U_4i1834nsbwRmdVi2UEMNdL8T")
+    RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "change it")
     RESEND_FROM = os.environ.get("RESEND_FROM", "MSchool <enapakh@gmail.com>")
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
