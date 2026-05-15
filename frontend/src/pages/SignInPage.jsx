@@ -47,7 +47,7 @@ export default function SignInPage() {
             Sign In
           </Typography>
           <Typography variant="body2" color="text.secondary" mb={3}>
-            Enter your credentials to access MSchool.
+            Enter your credentials to access MuSchool.
           </Typography>
 
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}

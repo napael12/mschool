@@ -16,10 +16,11 @@ import ConfirmDialog from '../components/common/ConfirmDialog'
 const localizer = dayjsLocalizer(dayjs)
 
 function lessonToEvent(lesson) {
-  const start = new Date(lesson.lesson_dt)
+  const start = dayjs(lesson.lesson_dt).toDate()
   const end = dayjs(lesson.lesson_dt).add(1, 'hour').toDate()
+  const prefix = lesson.status === 'cancelled' ? '[Cancelled] ' : ''
   return {
-    title: lesson.description || '(No title)',
+    title: prefix + (lesson.description || '(No title)'),
     start,
     end,
     resource: lesson,
@@ -87,10 +88,38 @@ export default function LessonsPage() {
     }
   }
 
-  // Color events by creator role
+  // Color events by creator role and lesson status
   const eventStyleGetter = (event) => {
     const lesson = event.resource
     const isCreator = lesson.created_by === user?.user_id
+
+    if (lesson.status === 'cancelled') {
+      return {
+        style: {
+          backgroundColor: '#f5f5f5',
+          borderRadius: 4,
+          border: 'none',
+          color: '#9e9e9e',
+          fontSize: 12,
+          fontWeight: 600,
+          textDecoration: 'line-through',
+        },
+      }
+    }
+
+    if (lesson.status === 'rescheduled') {
+      return {
+        style: {
+          backgroundColor: isCreator ? '#FF9800' : '#FFF3E0',
+          borderRadius: 4,
+          border: 'none',
+          color: isCreator ? '#fff' : '#E65100',
+          fontSize: 12,
+          fontWeight: 600,
+        },
+      }
+    }
+
     return {
       style: {
         backgroundColor: isCreator ? '#5D87FF' : '#ECF2FF',
@@ -154,6 +183,8 @@ export default function LessonsPage() {
         onClose={() => setDetailLesson(null)}
         onCommented={handleLessonUpdated}
         onCreditsApplied={handleLessonUpdated}
+        onCancelled={handleLessonUpdated}
+        onRescheduled={handleLessonUpdated}
         onEdit={(lesson) => { setDetailLesson(null); setEditLesson(lesson); setFormOpen(true) }}
         onDelete={handleDeleteRequest}
       />

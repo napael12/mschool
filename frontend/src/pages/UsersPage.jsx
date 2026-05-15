@@ -9,10 +9,12 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import SearchIcon from '@mui/icons-material/Search'
 import VpnKeyIcon from '@mui/icons-material/VpnKey'
-import { listUsers, createUser, updateUser, deleteUser, inviteUser, adminSendPasswordReset } from '../api/usersApi'
+import LockIcon from '@mui/icons-material/Lock'
+import { listUsers, createUser, updateUser, deleteUser, inviteUser, adminSendPasswordReset, setUserPassword } from '../api/usersApi'
 import ConfirmDialog from '../components/common/ConfirmDialog'
 import UserFormDialog from '../components/users/UserFormDialog'
 import InviteDialog from '../components/users/InviteDialog'
+import AdminResetPasswordDialog from '../components/users/AdminResetPasswordDialog'
 
 const ROLE_COLORS = { Admin: 'error', Teacher: 'primary', Student: 'success' }
 
@@ -29,6 +31,7 @@ export default function UsersPage() {
   const [inviteOpen, setInviteOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [resetTarget, setResetTarget] = useState(null)
+  const [setPasswordTarget, setSetPasswordTarget] = useState(null)
   const [snack, setSnack] = useState(null)
 
   const load = () => listUsers().then(setUsers).finally(() => setLoading(false))
@@ -69,6 +72,12 @@ export default function UsersPage() {
     } catch {
       setSnack({ severity: 'error', message: 'Error deleting user.' })
     }
+  }
+
+  const handleSetPassword = async (password) => {
+    await setUserPassword(setPasswordTarget.user_id, password)
+    setSnack({ severity: 'success', message: `Password updated for ${setPasswordTarget.email}.` })
+    setSetPasswordTarget(null)
   }
 
   const handleSendReset = async () => {
@@ -163,7 +172,15 @@ export default function UsersPage() {
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Tooltip title="Send Password Reset">
+                      <Tooltip title="Set Password">
+                        <IconButton
+                          size="small"
+                          onClick={() => setSetPasswordTarget(u)}
+                        >
+                          <LockIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Send Password Reset Email">
                         <IconButton
                           size="small"
                           color="warning"
@@ -214,12 +231,21 @@ export default function UsersPage() {
         onInvite={handleInvite}
       />
 
+      <AdminResetPasswordDialog
+        open={Boolean(setPasswordTarget)}
+        user={setPasswordTarget}
+        onClose={() => setSetPasswordTarget(null)}
+        onSave={handleSetPassword}
+      />
+
       <ConfirmDialog
         open={Boolean(resetTarget)}
         title="Send Password Reset"
         message={`Send a password reset email to ${resetTarget?.first_nm || ''} ${resetTarget?.last_nm || ''} (${resetTarget?.email})? This will bypass the daily limit.`}
         onConfirm={handleSendReset}
         onCancel={() => setResetTarget(null)}
+        confirmLabel="Send"
+        confirmColor="primary"
       />
 
       <ConfirmDialog

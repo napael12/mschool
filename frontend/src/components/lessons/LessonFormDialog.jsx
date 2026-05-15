@@ -69,7 +69,7 @@ export default function LessonFormDialog({ open, lesson, defaultDate, onClose, o
     setSaving(true)
     try {
       const payload = {
-        lesson_dt: form.lesson_dt.toISOString(),
+        lesson_dt: form.lesson_dt.format('YYYY-MM-DDTHH:mm:ss'),
         description: form.description,
         assignment: form.assignment,
         credit_cost: parseFloat(form.credit_cost) || 0,

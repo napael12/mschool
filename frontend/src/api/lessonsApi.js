@@ -15,3 +15,9 @@ export const addComment = (id, text) =>
 
 export const applyLessonCredits = (id) =>
   api.post(`/lessons/${id}/apply-credits`).then((r) => r.data)
+
+export const cancelLesson = (id, sendEmail = false) =>
+  api.post(`/lessons/${id}/cancel`, { send_email: sendEmail }).then((r) => r.data)
+
+export const rescheduleLesson = (id, lessonDt, sendEmail = false) =>
+  api.post(`/lessons/${id}/reschedule`, { lesson_dt: lessonDt, send_email: sendEmail }).then((r) => r.data)
