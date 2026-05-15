@@ -47,6 +47,12 @@ def create_app():
         with app.app_context():
             db.create_all()
             logger.info("db.create_all() completed")
+            from sqlalchemy import text
+            db.session.execute(text(
+                "ALTER TABLE lessons ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'scheduled'"
+            ))
+            db.session.commit()
+            logger.info("lessons.status column ensured")
     except Exception:
         logger.error("SQLAlchemy init_app failed:\n%s", traceback.format_exc())
         raise

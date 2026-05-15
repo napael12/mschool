@@ -11,6 +11,7 @@ class Lesson(db.Model):
     comments = db.Column(db.String(4000))
     credit_cost = db.Column(db.Numeric(10, 2), nullable=False, default=0)
     credits_applied = db.Column(db.Boolean, nullable=False, default=False)
+    status = db.Column(db.String(20), nullable=False, default='scheduled', server_default='scheduled')
     created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
 
     creator = db.relationship("User", foreign_keys=[created_by])
@@ -29,6 +30,7 @@ class Lesson(db.Model):
             "comments": self.comments,
             "credit_cost": float(self.credit_cost),
             "credits_applied": self.credits_applied,
+            "status": self.status or "scheduled",
             "created_by": self.created_by,
             "creator": self.creator.to_dict() if self.creator else None,
             "teachers": teachers,

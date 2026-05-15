@@ -1,4 +1,5 @@
 import logging
+import re
 
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required
@@ -11,6 +12,20 @@ from app.models.password_reset import PasswordResetToken
 from app.utils.auth_helpers import require_roles, get_current_user
 
 logger = logging.getLogger(__name__)
+
+
+def _validate_strong_password(password):
+    if len(password) < 8:
+        return "Password must be at least 8 characters long"
+    if not re.search(r"[A-Z]", password):
+        return "Password must contain at least one uppercase letter"
+    if not re.search(r"[a-z]", password):
+        return "Password must contain at least one lowercase letter"
+    if not re.search(r"\d", password):
+        return "Password must contain at least one number"
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>\[\]\-_=+~`/\\]', password):
+        return "Password must contain at least one special character"
+    return None
 
 users_bp = Blueprint("users", __name__)
 
@@ -101,6 +116,24 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     return jsonify({"message": "User deleted"})
+
+
+@users_bp.route("/<int:user_id>/password", methods=["PUT"])
+@require_roles("Admin")
+def set_user_password(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json() or {}
+    new_password = data.get("password") or ""
+
+    error = _validate_strong_password(new_password)
+    if error:
+        return jsonify({"error": error}), 400
+
+    user.password_hash = bcrypt.hashpw(
+        new_password.encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
+    db.session.commit()
+    return jsonify({"message": "Password updated."})
 
 
 @users_bp.route("/<int:user_id>/send-reset", methods=["POST"])
