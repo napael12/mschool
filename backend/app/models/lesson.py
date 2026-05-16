@@ -5,7 +5,7 @@ class Lesson(db.Model):
     __tablename__ = "lessons"
 
     lesson_id = db.Column(db.Integer, primary_key=True)
-    lesson_dt = db.Column(db.DateTime, nullable=False)
+    lesson_dt = db.Column(db.DateTime(timezone=True), nullable=False)
     description = db.Column(db.String(60))
     assignment = db.Column(db.String(4000))
     comments = db.Column(db.String(4000))

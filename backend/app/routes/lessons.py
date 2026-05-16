@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required
 import resend
@@ -13,6 +13,12 @@ from app.utils.auth_helpers import get_current_user
 logger = logging.getLogger(__name__)
 
 lessons_bp = Blueprint("lessons", __name__)
+
+
+def _parse_dt(value: str) -> datetime:
+    """Parse an ISO-8601 datetime string to a timezone-aware UTC datetime.
+    Handles the 'Z' suffix on all Python versions."""
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def _lesson_visible_to(user):
@@ -52,7 +58,7 @@ def create_lesson():
         return jsonify({"error": "lesson_dt is required"}), 400
 
     lesson = Lesson(
-        lesson_dt=datetime.fromisoformat(data["lesson_dt"]),
+        lesson_dt=_parse_dt(data["lesson_dt"]),
         description=data.get("description"),
         assignment=data.get("assignment"),
         credit_cost=float(data.get("credit_cost") or 0),
@@ -87,7 +93,7 @@ def update_lesson(lesson_id):
 
     data = request.get_json()
     if "lesson_dt" in data:
-        lesson.lesson_dt = datetime.fromisoformat(data["lesson_dt"])
+        lesson.lesson_dt = _parse_dt(data["lesson_dt"])
     for field in ("description", "assignment"):
         if field in data:
             setattr(lesson, field, data[field])
@@ -306,7 +312,7 @@ def reschedule_lesson(lesson_id):
     if not data.get("lesson_dt"):
         return jsonify({"error": "lesson_dt is required"}), 400
 
-    lesson.lesson_dt = datetime.fromisoformat(data["lesson_dt"])
+    lesson.lesson_dt = _parse_dt(data["lesson_dt"])
     lesson.status = "rescheduled"
     db.session.commit()
 

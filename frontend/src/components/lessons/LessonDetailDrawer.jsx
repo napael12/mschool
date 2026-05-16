@@ -107,7 +107,7 @@ export default function LessonDetailDrawer({
     setRescheduling(true)
     setRescheduleError('')
     try {
-      const updated = await rescheduleLesson(lesson.lesson_id, newDate.format('YYYY-MM-DDTHH:mm:ss'), notifyOnReschedule)
+      const updated = await rescheduleLesson(lesson.lesson_id, newDate.toISOString(), notifyOnReschedule)
       setRescheduleOpen(false)
       onRescheduled(updated)
     } catch (err) {

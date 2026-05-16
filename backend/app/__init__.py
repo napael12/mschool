@@ -51,8 +51,23 @@ def create_app():
             db.session.execute(text(
                 "ALTER TABLE lessons ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'scheduled'"
             ))
+            db.session.execute(text("""
+                DO $$
+                BEGIN
+                  IF EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'lessons'
+                      AND column_name = 'lesson_dt'
+                      AND data_type = 'timestamp without time zone'
+                  ) THEN
+                    ALTER TABLE lessons
+                      ALTER COLUMN lesson_dt TYPE TIMESTAMPTZ
+                      USING lesson_dt AT TIME ZONE 'UTC';
+                  END IF;
+                END $$;
+            """))
             db.session.commit()
-            logger.info("lessons.status column ensured")
+            logger.info("lessons schema migrations completed")
     except Exception:
         logger.error("SQLAlchemy init_app failed:\n%s", traceback.format_exc())
         raise
