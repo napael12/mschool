@@ -1,6 +1,6 @@
 import re
 import logging
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 import bcrypt
 import resend
@@ -75,12 +75,14 @@ def login():
     data = request.get_json()
     email = (data.get("email") or "").strip().lower()
     password = (data.get("password") or "").encode("utf-8")
+    remember_me = bool(data.get("remember_me", False))
 
     user = User.query.filter_by(email=email).first()
     if not user or not bcrypt.checkpw(password, user.password_hash.encode("utf-8")):
         return jsonify({"error": "Invalid credentials"}), 401
 
-    token = create_access_token(identity=str(user.user_id))
+    expires = timedelta(days=60) if remember_me else timedelta(hours=8)
+    token = create_access_token(identity=str(user.user_id), expires_delta=expires)
     return jsonify({"access_token": token, "user": user.to_dict()})
 
 

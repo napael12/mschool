@@ -120,6 +120,21 @@ def update_lesson(lesson_id):
     return jsonify(lesson.to_dict())
 
 
+def _refund_lesson_credits(lesson):
+    """Add credit_cost back to each student's balance for this lesson."""
+    cost = float(lesson.credit_cost)
+    if cost <= 0:
+        return
+    students = [lu.user for lu in lesson.lesson_users if lu.user_as == "Student"]
+    for student in students:
+        credit = Credit.query.filter_by(
+            teacher_id=lesson.created_by,
+            student_id=student.user_id
+        ).first()
+        if credit:
+            credit.balance = float(credit.balance) + cost
+
+
 @lessons_bp.route("/<int:lesson_id>", methods=["DELETE"])
 @jwt_required()
 def delete_lesson(lesson_id):
@@ -128,6 +143,9 @@ def delete_lesson(lesson_id):
 
     if user.profile != "Admin" and lesson.created_by != user.user_id:
         return jsonify({"error": "Forbidden"}), 403
+
+    if lesson.credits_applied:
+        _refund_lesson_credits(lesson)
 
     db.session.delete(lesson)
     db.session.commit()
@@ -287,10 +305,15 @@ def cancel_lesson(lesson_id):
     if lesson.status == "cancelled":
         return jsonify({"error": "Lesson is already cancelled"}), 400
 
+    data = request.get_json() or {}
+
+    if data.get("refund_credits") and lesson.credits_applied:
+        _refund_lesson_credits(lesson)
+        lesson.credits_applied = False
+
     lesson.status = "cancelled"
     db.session.commit()
 
-    data = request.get_json() or {}
     if data.get("send_email"):
         _send_lesson_notification(lesson, "cancelled")
 
