@@ -110,6 +110,11 @@ export default function SignInPage() {
               Forgot your password?
             </Link>
           </Box>
+          <Box mt={1} textAlign="center">
+            <Link href="/app.html" variant="body2">
+              About MuSchool
+            </Link>
+          </Box>
         </CardContent>
       </Card>
     </Box>
