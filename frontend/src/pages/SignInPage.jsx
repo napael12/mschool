@@ -3,6 +3,7 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import {
   Box, Card, CardContent, TextField, Button, Typography,
   Alert, CircularProgress, InputAdornment, IconButton, Link,
+  FormControlLabel, Checkbox,
 } from '@mui/material'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
@@ -14,6 +15,7 @@ export default function SignInPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -22,7 +24,7 @@ export default function SignInPage() {
     setError('')
     setLoading(true)
     try {
-      await login(email, password)
+      await login(email, password, rememberMe)
       navigate('/')
     } catch {
       setError('Invalid email or password.')
@@ -70,7 +72,7 @@ export default function SignInPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              sx={{ mb: 3 }}
+              sx={{ mb: 1 }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -80,6 +82,17 @@ export default function SignInPage() {
                   </InputAdornment>
                 ),
               }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  size="small"
+                />
+              }
+              label={<Typography variant="body2">Remember Me</Typography>}
+              sx={{ mb: 2 }}
             />
             <Button
               type="submit"

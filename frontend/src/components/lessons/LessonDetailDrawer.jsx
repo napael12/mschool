@@ -3,11 +3,12 @@ import {
   Drawer, Box, Typography, Divider, Chip, Avatar, Button,
   TextField, CircularProgress, IconButton, Link,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Checkbox, FormControlLabel,
+  Checkbox, FormControlLabel, RadioGroup, Radio, FormControl, FormLabel,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -21,7 +22,7 @@ function nameLabel(u) {
 
 export default function LessonDetailDrawer({
   lesson, currentUserId, isAdmin, onClose,
-  onCommented, onEdit, onDelete, onCreditsApplied,
+  onCommented, onEdit, onClone, onDelete, onCreditsApplied,
   onCancelled, onRescheduled,
 }) {
   const [commentText, setCommentText] = useState('')
@@ -33,6 +34,7 @@ export default function LessonDetailDrawer({
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState('')
   const [notifyOnCancel, setNotifyOnCancel] = useState(false)
+  const [creditAction, setCreditAction] = useState('keep')
 
   const [rescheduleOpen, setRescheduleOpen] = useState(false)
   const [rescheduling, setRescheduling] = useState(false)
@@ -78,6 +80,7 @@ export default function LessonDetailDrawer({
   const handleOpenCancel = () => {
     setCancelError('')
     setNotifyOnCancel(false)
+    setCreditAction('keep')
     setCancelOpen(true)
   }
 
@@ -85,7 +88,7 @@ export default function LessonDetailDrawer({
     setCancelling(true)
     setCancelError('')
     try {
-      const updated = await cancelLesson(lesson.lesson_id, notifyOnCancel)
+      const updated = await cancelLesson(lesson.lesson_id, notifyOnCancel, creditAction === 'refund')
       setCancelOpen(false)
       onCancelled(updated)
     } catch (err) {
@@ -128,6 +131,11 @@ export default function LessonDetailDrawer({
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
             <Typography variant="h6" fontWeight={700}>{lesson.description}</Typography>
             <Box display="flex" alignItems="center">
+              {canEdit && (
+                <IconButton size="small" title="Clone lesson" onClick={() => onClone(lesson)}>
+                  <ContentCopyIcon fontSize="small" />
+                </IconButton>
+              )}
               {canEdit && (
                 <IconButton size="small" onClick={() => onEdit(lesson)}>
                   <EditIcon fontSize="small" />
@@ -301,6 +309,23 @@ export default function LessonDetailDrawer({
           <Typography>
             Are you sure you want to cancel <strong>{lesson.description}</strong>?
           </Typography>
+          {lesson.credits_applied && (
+            <FormControl sx={{ mt: 2, display: 'block' }}>
+              <FormLabel sx={{ fontSize: 14 }}>Credits were applied for this lesson</FormLabel>
+              <RadioGroup value={creditAction} onChange={(e) => setCreditAction(e.target.value)}>
+                <FormControlLabel
+                  value="keep"
+                  control={<Radio size="small" />}
+                  label={<Typography variant="body2">Keep credits deducted</Typography>}
+                />
+                <FormControlLabel
+                  value="refund"
+                  control={<Radio size="small" />}
+                  label={<Typography variant="body2">Refund credits to students</Typography>}
+                />
+              </RadioGroup>
+            </FormControl>
+          )}
           <FormControlLabel
             control={
               <Checkbox

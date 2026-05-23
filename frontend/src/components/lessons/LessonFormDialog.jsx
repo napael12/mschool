@@ -21,7 +21,7 @@ const emptyForm = {
   library_ids: [],
 }
 
-export default function LessonFormDialog({ open, lesson, defaultDate, onClose, onSaved }) {
+export default function LessonFormDialog({ open, lesson, defaultDate, clone, onClose, onSaved }) {
   const [form, setForm] = useState(emptyForm)
   const [teachers, setTeachers] = useState([])
   const [students, setStudents] = useState([])
@@ -43,12 +43,13 @@ export default function LessonFormDialog({ open, lesson, defaultDate, onClose, o
       .finally(() => setLoadingUsers(false))
   }, [open])
 
-  // Pre-fill form when editing, reset when creating
+  // Pre-fill form when editing/cloning, reset when creating
   useEffect(() => {
     if (!open) return
     if (lesson) {
+      const baseDt = dayjs(lesson.lesson_dt)
       setForm({
-        lesson_dt: dayjs(lesson.lesson_dt),
+        lesson_dt: clone ? baseDt.add(7, 'day') : baseDt,
         description: lesson.description || '',
         assignment: lesson.assignment || '',
         credit_cost: lesson.credit_cost ?? 0,
@@ -60,7 +61,7 @@ export default function LessonFormDialog({ open, lesson, defaultDate, onClose, o
       setForm({ ...emptyForm, lesson_dt: defaultDate ? dayjs(defaultDate) : emptyForm.lesson_dt })
     }
     setError('')
-  }, [lesson, defaultDate, open])
+  }, [lesson, defaultDate, clone, open])
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }))
 
@@ -77,7 +78,7 @@ export default function LessonFormDialog({ open, lesson, defaultDate, onClose, o
         student_ids: form.student_ids,
         library_ids: form.library_ids,
       }
-      if (lesson) {
+      if (lesson && !clone) {
         await updateLesson(lesson.lesson_id, payload)
       } else {
         await createLesson(payload)
@@ -93,7 +94,7 @@ export default function LessonFormDialog({ open, lesson, defaultDate, onClose, o
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{lesson ? 'Edit Lesson' : 'New Lesson'}</DialogTitle>
+        <DialogTitle>{clone ? 'Clone Lesson' : lesson ? 'Edit Lesson' : 'New Lesson'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           {loadingUsers ? (
             <Box display="flex" justifyContent="center" py={4}>

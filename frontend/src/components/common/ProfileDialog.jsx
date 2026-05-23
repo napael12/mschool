@@ -43,7 +43,7 @@ export default function ProfileDialog({ open, onClose }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Edit Profile</DialogTitle>
-      <DialogContent sx={{ pt: 2 }}>
+      <DialogContent sx={{ pt: 3, overflow: 'visible' }}>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <Grid container spacing={2}>
           <Grid item xs={6}>

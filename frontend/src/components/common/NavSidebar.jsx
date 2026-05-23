@@ -26,7 +26,7 @@ export default function NavSidebar() {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar sx={{ px: 3 }}>
         <Typography variant="h6" fontWeight={700} color="primary">
-          MSchool
+          MuSchool
         </Typography>
       </Toolbar>
 

@@ -35,6 +35,7 @@ export default function LessonsPage() {
   const [loading, setLoading] = useState(true)
   const [formOpen, setFormOpen] = useState(false)
   const [editLesson, setEditLesson] = useState(null)
+  const [isClone, setIsClone] = useState(false)
   const [defaultDate, setDefaultDate] = useState(null)
   const [detailLesson, setDetailLesson] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -62,6 +63,7 @@ export default function LessonsPage() {
   const handleSaved = () => {
     setFormOpen(false)
     setEditLesson(null)
+    setIsClone(false)
     setDefaultDate(null)
     load()
   }
@@ -172,7 +174,8 @@ export default function LessonsPage() {
         open={formOpen}
         lesson={editLesson}
         defaultDate={defaultDate}
-        onClose={() => { setFormOpen(false); setEditLesson(null); setDefaultDate(null) }}
+        clone={isClone}
+        onClose={() => { setFormOpen(false); setEditLesson(null); setIsClone(false); setDefaultDate(null) }}
         onSaved={handleSaved}
       />
 
@@ -185,14 +188,15 @@ export default function LessonsPage() {
         onCreditsApplied={handleLessonUpdated}
         onCancelled={handleLessonUpdated}
         onRescheduled={handleLessonUpdated}
-        onEdit={(lesson) => { setDetailLesson(null); setEditLesson(lesson); setFormOpen(true) }}
+        onEdit={(lesson) => { setDetailLesson(null); setIsClone(false); setEditLesson(lesson); setFormOpen(true) }}
+        onClone={(lesson) => { setDetailLesson(null); setIsClone(true); setEditLesson(lesson); setFormOpen(true) }}
         onDelete={handleDeleteRequest}
       />
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         title="Delete Lesson"
-        message={`Delete "${deleteTarget?.description}"? This cannot be undone.`}
+        message={`Delete "${deleteTarget?.description}"? This cannot be undone.${deleteTarget?.credits_applied ? ' Credits will be automatically refunded to students.' : ''}`}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
