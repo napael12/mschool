@@ -10,11 +10,41 @@ import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import VideoCallIcon from '@mui/icons-material/VideoCall'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { addComment, applyLessonCredits, cancelLesson, rescheduleLesson } from '../../api/lessonsApi'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
+
+function buildGoogleMeetUrl(lesson) {
+  const start = dayjs(lesson.lesson_dt)
+  const end = start.add(1, 'hour')
+  const fmt = (d) => d.utc().format('YYYYMMDDTHHmmss') + 'Z'
+
+  const guests = [
+    ...(lesson.teachers || []),
+    ...(lesson.students || []),
+  ].map((u) => u.email).filter(Boolean).join(',')
+
+  const details = lesson.assignment
+    ? `Assignment: ${lesson.assignment}`
+    : `MuSchool lesson: ${lesson.description}`
+
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: lesson.description || 'Music Lesson',
+    dates: `${fmt(start)}/${fmt(end)}`,
+    details,
+    add: guests,
+    sprop: 'name:MuSchool',
+  })
+
+  return `https://calendar.google.com/calendar/render?${params.toString()}&crm=AVAILABLE`
+}
 
 function nameLabel(u) {
   return `${u.first_nm || ''} ${u.last_nm || ''}`.trim() || u.email
@@ -164,8 +194,23 @@ export default function LessonDetailDrawer({
             {dayjs(lesson.lesson_dt).format('dddd, MMMM D, YYYY [at] h:mm A')}
           </Typography>
 
+          <Box display="flex" gap={1} mt={1.5} flexWrap="wrap">
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<VideoCallIcon />}
+              href={buildGoogleMeetUrl(lesson)}
+              target="_blank"
+              rel="noopener noreferrer"
+              component="a"
+              sx={{ borderColor: '#1a73e8', color: '#1a73e8', '&:hover': { borderColor: '#1558b0', color: '#1558b0', bgcolor: 'rgba(26,115,232,0.04)' } }}
+            >
+              Google Meet
+            </Button>
+          </Box>
+
           {(canCancel || canReschedule) && (
-            <Box display="flex" gap={1} mt={1.5}>
+            <Box display="flex" gap={1} mt={1}>
               {canReschedule && (
                 <Button size="small" color="warning" variant="outlined" onClick={handleOpenReschedule}>
                   Re-schedule

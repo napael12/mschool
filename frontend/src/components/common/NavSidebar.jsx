@@ -25,8 +25,15 @@ export default function NavSidebar() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar sx={{ px: 3 }}>
-        <Typography variant="h6" fontWeight={700} color="primary">
-          MuSchool
+        <Typography variant="h6" color="primary" sx={{ letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box component="span" fontWeight={700} sx={{
+            bgcolor: 'primary.main',
+            color: '#fff',
+            px: 0.75,
+            py: 0.25,
+            borderRadius: 1,
+          }}>MU</Box>
+          <Box component="span" fontWeight={300}>SCHOOL</Box>
         </Typography>
       </Toolbar>
 

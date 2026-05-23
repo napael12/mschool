@@ -1,0 +1,425 @@
+<!DOCTYPE HTML>
+<!--
+	Forty by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>MuSchool — Music Lesson Management, Free &amp; Simple</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<meta name="description" content="MuSchool is a free tool for music teachers and students to manage lessons, assignments, and scheduling in one place." />
+		<link rel="stylesheet" href="/landing/assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="/landing/assets/css/noscript.css" /></noscript>
+		<style>
+			#banner.major .inner header.major h1 { letter-spacing: 0.04em; }
+
+			/* Sign-in modal */
+			#signin-overlay {
+				display: none;
+				position: fixed;
+				inset: 0;
+				background: rgba(0,0,0,0.72);
+				z-index: 9999;
+				align-items: center;
+				justify-content: center;
+			}
+			#signin-overlay.active { display: flex; }
+			#signin-box {
+				background: #1e1e2e;
+				border: 1px solid rgba(255,255,255,0.08);
+				border-radius: 8px;
+				padding: 2.5rem 2rem;
+				width: 100%;
+				max-width: 400px;
+				margin: 1rem;
+				box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+				color: #fff;
+				position: relative;
+			}
+			#signin-box h2 {
+				margin: 0 0 0.25rem;
+				font-size: 1.6rem;
+				font-weight: 700;
+				letter-spacing: 0.04em;
+				border: none;
+				color: #fff;
+			}
+			#signin-box p.subtitle {
+				margin: 0 0 1.75rem;
+				color: rgba(255,255,255,0.5);
+				font-size: 0.875rem;
+			}
+			#signin-box label {
+				display: block;
+				font-size: 0.75rem;
+				letter-spacing: 0.1em;
+				text-transform: uppercase;
+				color: rgba(255,255,255,0.6);
+				margin-bottom: 0.35rem;
+			}
+			#signin-box input[type="email"],
+			#signin-box input[type="password"] {
+				width: 100%;
+				background: rgba(255,255,255,0.06);
+				border: 1px solid rgba(255,255,255,0.12);
+				border-radius: 4px;
+				color: #fff;
+				padding: 0.65rem 0.85rem;
+				font-size: 0.95rem;
+				margin-bottom: 1rem;
+				box-sizing: border-box;
+				transition: border-color 0.2s;
+			}
+			#signin-box input[type="email"]:focus,
+			#signin-box input[type="password"]:focus {
+				outline: none;
+				border-color: rgba(255,255,255,0.4);
+			}
+			#signin-box .remember-row {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				margin-bottom: 1.25rem;
+			}
+			#signin-box .remember-row input[type="checkbox"] {
+				width: 16px;
+				height: 16px;
+				accent-color: #5d87ff;
+				cursor: pointer;
+				margin: 0;
+			}
+			#signin-box .remember-row label {
+				margin: 0;
+				font-size: 0.82rem;
+				text-transform: none;
+				letter-spacing: 0;
+				color: rgba(255,255,255,0.6);
+				cursor: pointer;
+			}
+			#signin-submit {
+				width: 100%;
+				padding: 0.75rem;
+				background: #5d87ff;
+				color: #fff;
+				border: none;
+				border-radius: 4px;
+				font-size: 0.95rem;
+				font-weight: 600;
+				letter-spacing: 0.04em;
+				cursor: pointer;
+				transition: background 0.2s;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			#signin-submit:hover { background: #4a74ec; }
+			#signin-submit:disabled { background: #3a3a5a; cursor: default; }
+			#signin-error {
+				display: none;
+				background: rgba(211,47,47,0.18);
+				border: 1px solid rgba(211,47,47,0.4);
+				border-radius: 4px;
+				color: #ff8a80;
+				font-size: 0.85rem;
+				padding: 0.6rem 0.85rem;
+				margin-bottom: 1rem;
+			}
+			#signin-close {
+				position: absolute;
+				top: 0.85rem;
+				right: 1rem;
+				background: none;
+				border: none;
+				outline: none;
+				box-shadow: none;
+				color: rgba(255,255,255,0.4);
+				font-size: 1.4rem;
+				cursor: pointer;
+				line-height: 1;
+				padding: 0;
+			}
+			#signin-close:hover { color: #fff; }
+			#signin-close:focus { outline: none; box-shadow: none; }
+		</style>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header" class="alt">
+						<a href="/" class="logo"><strong>Mu</strong><span>School</span></a>
+						<nav>
+							<a href="#menu">Menu</a>
+						</nav>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<ul class="links">
+							<li><a href="/">Home</a></li>
+							<li><a href="#features">Features</a></li>
+							<li><a href="#for-who">Who It's For</a></li>
+							<li><a href="#cta">Get Started</a></li>
+						</ul>
+						<ul class="actions stacked">
+							<li><a href="#" onclick="openSignIn(event)" class="button primary fit">Open MuSchool</a></li>
+						</ul>
+					</nav>
+
+				<!-- Banner -->
+					<section id="banner" class="major">
+						<div class="inner">
+							<header class="major">
+								<h1>Music Lessons,<br />Simplified.</h1>
+							</header>
+							<div class="content">
+								<p>MuSchool is a <strong>free</strong> platform built specifically for music teachers and students — giving you everything you need to run your lessons smoothly, all in one place.</p>
+								<ul class="actions">
+									<li><a href="#" onclick="openSignIn(event)" class="button next scrolly">Open MuSchool &rarr;</a></li>
+									<li><a href="#features" class="button scrolly">See Features</a></li>
+								</ul>
+							</div>
+						</div>
+					</section>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Intro -->
+							<section id="intro">
+								<div class="inner">
+			
+									<p>Whether you teach piano in your living room or run a full music academy, keeping track of lessons, assignments, and schedules can get overwhelming fast. MuSchool was built by musicians, for musicians — a clean, no-nonsense tool that keeps you organized so you can focus on what matters: the music.</p>
+									<p>It's completely free, no subscription required. Just sign up and start teaching.</p>
+								</div>
+							</section>
+
+						<!-- Features Tiles -->
+							<section id="features" class="tiles">
+								<article>
+									<span class="image">
+										<img src="/landing/images/pic01.jpg" alt="Lesson Scheduling" />
+									</span>
+									<header class="major">
+										<h3>Lesson Scheduling</h3>
+										<p>A beautiful calendar view keeps all your lessons organized. Book new lessons in seconds by clicking any open slot.</p>
+									</header>
+								</article>
+								<article>
+									<span class="image">
+										<img src="/landing/images/pic02.jpg" alt="Assignments" />
+									</span>
+									<header class="major">
+										<h3>Assignments</h3>
+										<p>Attach practice notes and homework to every lesson so students always know what to work on before the next session.</p>
+									</header>
+								</article>
+								<article>
+									<span class="image">
+										<img src="/landing/images/pic03.jpg" alt="Resource Library" />
+									</span>
+									<header class="major">
+										<h3>Resource Library</h3>
+										<p>Build a shared library of sheet music, recordings, and video links. Attach any resource to a lesson with a single click.</p>
+									</header>
+								</article>
+								<article>
+									<span class="image">
+										<img src="/landing/images/pic04.jpg" alt="Rescheduling" />
+									</span>
+									<header class="major">
+										<h3>Easy Rescheduling</h3>
+										<p>Life happens. Reschedule or cancel lessons effortlessly and automatically notify all participants by email.</p>
+									</header>
+								</article>
+								<article>
+									<span class="image">
+										<img src="/landing/images/pic05.jpg" alt="Credit Tracking" />
+									</span>
+									<header class="major">
+										<h3>Credit Tracking</h3>
+										<p>Pay however works for you — cash, Venmo, whatever you prefer. MuSchool just keeps a simple running tally of lesson credits per student, so everyone stays on the same page without storing any payment details.</p>
+									</header>
+								</article>
+								<article>
+									<span class="image">
+										<img src="/landing/images/pic06.jpg" alt="Lesson History" />
+									</span>
+									<header class="major">
+										<h3>Lesson History &amp; Notes</h3>
+										<p>Every lesson keeps a running comment thread between teacher and student — a permanent record of what was covered.</p>
+									</header>
+								</article>
+							</section>
+
+						<!-- Who It's For -->
+							<section id="for-who" class="spotlights">
+								<section>
+									<a href="#" onclick="openSignIn(event)" class="image">
+										<img src="/landing/images/pic08.jpg" alt="For Teachers" data-position="center center" />
+									</a>
+									<div class="content">
+										<div class="inner">
+											<header class="major">
+												<h3>Built for Teachers</h3>
+											</header>
+											<p>Run your studio your way. Create lessons, assign materials, manage multiple students, and track lesson credits — all from a single dashboard. When you need to cancel or reschedule, MuSchool handles the notifications so you don't have to chase anyone down.</p>
+											<ul class="actions">
+												<li><a href="#" onclick="openSignIn(event)" class="button">Start Teaching</a></li>
+											</ul>
+										</div>
+									</div>
+								</section>
+								<section>
+									<a href="#" onclick="openSignIn(event)" class="image">
+										<img src="/landing/images/pic09.jpg" alt="For Students" data-position="top center" />
+									</a>
+									<div class="content">
+										<div class="inner">
+											<header class="major">
+												<h3>Designed for Students</h3>
+											</header>
+											<p>Never miss an assignment again. Students get a clear view of every upcoming lesson, exactly what to practice, and links to all the materials their teacher has shared. Check in before your lesson, review notes afterward — it's all right there.</p>
+											<ul class="actions">
+												<li><a href="#" onclick="openSignIn(event)" class="button">Start Learning</a></li>
+											</ul>
+										</div>
+									</div>
+								</section>
+								<section>
+									<a href="#" onclick="openSignIn(event)" class="image">
+										<img src="/landing/images/pic10.jpg" alt="100% Free" data-position="25% 25%" />
+									</a>
+									<div class="content">
+										<div class="inner">
+											<header class="major">
+												<h3>100% Free, Always</h3>
+											</header>
+											<p>MuSchool is completely free — no trials, no credit cards, no hidden fees. We believe every teacher and student deserves great tools regardless of the size of their studio. Sign up in seconds and invite your students the same day.</p>
+											<ul class="actions">
+												<li><a href="#" onclick="openSignIn(event)" class="button">Get Started Free</a></li>
+											</ul>
+										</div>
+									</div>
+								</section>
+							</section>
+
+						<!-- CTA -->
+							<section id="cta">
+								<div class="inner">
+									<header class="major">
+										<h2>Ready to simplify your music lessons?</h2>
+									</header>
+									<p>Join teachers and students already using MuSchool to stay organized, stay in sync, and spend more time making music. It takes less than a minute to get started — and it's free.</p>
+									<ul class="actions">
+										<li><a href="#" onclick="openSignIn(event)" class="button next">Open MuSchool</a></li>
+									</ul>
+								</div>
+							</section>
+
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<div class="inner">
+							<ul class="copyright">
+								<li>&copy; 2025 MuSchool. All rights reserved.</li>
+								<li>Design: <a href="https://html5up.net">HTML5 UP</a></li>
+							</ul>
+						</div>
+					</footer>
+
+			</div>
+
+		<!-- Sign-in modal -->
+		<div id="signin-overlay" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+			<div id="signin-box">
+				<button id="signin-close" onclick="closeSignIn()" aria-label="Close">&times;</button>
+				<h2 id="signin-title">Sign In</h2>
+				<p class="subtitle">Welcome back to MuSchool.</p>
+				<div id="signin-error"></div>
+				<form id="signin-form" onsubmit="submitSignIn(event)">
+					<label for="signin-email">Email</label>
+					<input id="signin-email" type="email" placeholder="you@example.com" required autocomplete="email" />
+					<label for="signin-password">Password</label>
+					<input id="signin-password" type="password" placeholder="Password" required autocomplete="current-password" />
+					<div class="remember-row">
+						<input id="signin-remember" type="checkbox" />
+						<label for="signin-remember">Remember Me</label>
+					</div>
+					<button id="signin-submit" type="submit">Sign In</button>
+				</form>
+			</div>
+		</div>
+
+		<script>
+			function openSignIn(e) {
+				if (e) e.preventDefault();
+				document.getElementById('signin-overlay').classList.add('active');
+				document.getElementById('signin-email').focus();
+			}
+			function closeSignIn() {
+				document.getElementById('signin-overlay').classList.remove('active');
+				document.getElementById('signin-error').style.display = 'none';
+				document.getElementById('signin-form').reset();
+			}
+			document.getElementById('signin-overlay').addEventListener('click', function(e) {
+				if (e.target === this) closeSignIn();
+			});
+			document.addEventListener('keydown', function(e) {
+				if (e.key === 'Escape') closeSignIn();
+			});
+			async function submitSignIn(e) {
+				e.preventDefault();
+				var btn = document.getElementById('signin-submit');
+				var errEl = document.getElementById('signin-error');
+				var email = document.getElementById('signin-email').value.trim();
+				var password = document.getElementById('signin-password').value;
+				var remember = document.getElementById('signin-remember').checked;
+				errEl.style.display = 'none';
+				btn.disabled = true;
+				btn.textContent = 'Signing in…';
+				try {
+					var res = await fetch('/api/auth/login', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ email: email, password: password, remember_me: remember })
+					});
+					var data = await res.json();
+					if (!res.ok) {
+						errEl.textContent = data.error || 'Invalid email or password.';
+						errEl.style.display = 'block';
+						return;
+					}
+					if (remember) {
+						localStorage.setItem('mschool_token', data.access_token);
+						localStorage.setItem('mschool_remember', '1');
+					} else {
+						sessionStorage.setItem('mschool_token', data.access_token);
+					}
+					window.location.href = '/lessons';
+				} catch (_) {
+					errEl.textContent = 'Could not connect. Please try again.';
+					errEl.style.display = 'block';
+				} finally {
+					btn.disabled = false;
+					btn.textContent = 'Sign In';
+				}
+			}
+		</script>
+
+		<!-- Scripts -->
+			<script src="/landing/assets/js/jquery.min.js"></script>
+			<script src="/landing/assets/js/jquery.scrolly.min.js"></script>
+			<script src="/landing/assets/js/jquery.scrollex.min.js"></script>
+			<script src="/landing/assets/js/browser.min.js"></script>
+			<script src="/landing/assets/js/breakpoints.min.js"></script>
+			<script src="/landing/assets/js/util.js"></script>
+			<script src="/landing/assets/js/main.js"></script>
+
+	</body>
+</html>
