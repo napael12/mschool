@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   Box, Grid, Card, CardContent, Typography, CircularProgress,
   Table, TableHead, TableBody, TableRow, TableCell, TableContainer, Paper,
+  Link,
 } from '@mui/material'
 import PeopleIcon from '@mui/icons-material/People'
 import SchoolIcon from '@mui/icons-material/School'
@@ -9,6 +10,8 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import { getSummary, getTeacherMetrics } from '../api/metricsApi'
 import { listLessons } from '../api/lessonsApi'
 import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
+import LessonDetailDrawer from '../components/lessons/LessonDetailDrawer'
 import dayjs from 'dayjs'
 
 function StatCard({ title, value, icon, color }) {
@@ -36,12 +39,23 @@ function StatCard({ title, value, icon, color }) {
 }
 
 export default function DashboardPage() {
-  const { hasRole } = useAuth()
+  const { hasRole, user } = useAuth()
   const isAdmin = hasRole('Admin')
+  const navigate = useNavigate()
   const [summary, setSummary] = useState(null)
   const [teachers, setTeachers] = useState([])
   const [lessons, setLessons] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedLesson, setSelectedLesson] = useState(null)
+
+  const loadLessons = useCallback(() => {
+    listLessons().then((data) => {
+      setLessons(data)
+      if (selectedLesson) {
+        setSelectedLesson(data.find((l) => l.lesson_id === selectedLesson.lesson_id) ?? null)
+      }
+    })
+  }, [selectedLesson])
 
   useEffect(() => {
     const fetches = isAdmin
@@ -129,7 +143,7 @@ export default function DashboardPage() {
                 .slice(0, 6)
                 .map((l) => (
                   <Grid item xs={12} sm={6} md={4} key={l.lesson_id}>
-                    <Card>
+                    <Card sx={{ cursor: 'pointer' }} onClick={() => setSelectedLesson(l)}>
                       <CardContent>
                         <Typography variant="subtitle2" color="primary">
                           {dayjs(l.lesson_dt).format('ddd, MMM D - h:mm A')}
@@ -138,6 +152,14 @@ export default function DashboardPage() {
                         <Typography variant="body2" color="text.secondary" noWrap>
                           {l.assignment}
                         </Typography>
+                        <Link
+                          component="button"
+                          variant="body2"
+                          sx={{ mt: 1, display: 'block', textAlign: 'left' }}
+                          onClick={(e) => { e.stopPropagation(); setSelectedLesson(l) }}
+                        >
+                          View details
+                        </Link>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -146,6 +168,20 @@ export default function DashboardPage() {
           )}
         </>
       )}
+
+      <LessonDetailDrawer
+        lesson={selectedLesson}
+        currentUserId={user?.user_id}
+        isAdmin={isAdmin}
+        onClose={() => setSelectedLesson(null)}
+        onCommented={loadLessons}
+        onCreditsApplied={loadLessons}
+        onCancelled={loadLessons}
+        onRescheduled={loadLessons}
+        onEdit={() => { setSelectedLesson(null); navigate('/lessons') }}
+        onClone={() => { setSelectedLesson(null); navigate('/lessons') }}
+        onDelete={() => { setSelectedLesson(null); loadLessons() }}
+      />
     </Box>
   )
 }

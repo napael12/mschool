@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Grid, Autocomplete, Chip, Typography, CircularProgress, Box,
+  FormControlLabel, Checkbox,
 } from '@mui/material'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -10,6 +11,7 @@ import dayjs from 'dayjs'
 import { createLesson, updateLesson } from '../../api/lessonsApi'
 import { listParticipants } from '../../api/usersApi'
 import { listLibrary } from '../../api/libraryApi'
+import { useAuth } from '../../context/AuthContext'
 
 const emptyForm = {
   lesson_dt: dayjs().add(1, 'day').startOf('hour'),
@@ -22,12 +24,14 @@ const emptyForm = {
 }
 
 export default function LessonFormDialog({ open, lesson, defaultDate, clone, onClose, onSaved }) {
+  const { user } = useAuth()
   const [form, setForm] = useState(emptyForm)
   const [teachers, setTeachers] = useState([])
   const [students, setStudents] = useState([])
   const [libraryItems, setLibraryItems] = useState([])
   const [loadingUsers, setLoadingUsers] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [notify, setNotify] = useState(false)
   const [error, setError] = useState('')
 
   // Fetch fresh participant and library lists every time the dialog opens
@@ -58,8 +62,13 @@ export default function LessonFormDialog({ open, lesson, defaultDate, clone, onC
         library_ids: lesson.library_items?.map((l) => l.library_id) || [],
       })
     } else {
-      setForm({ ...emptyForm, lesson_dt: defaultDate ? dayjs(defaultDate) : emptyForm.lesson_dt })
+      setForm({
+        ...emptyForm,
+        lesson_dt: defaultDate ? dayjs(defaultDate) : emptyForm.lesson_dt,
+        teacher_ids: user?.user_id ? [user.user_id] : [],
+      })
     }
+    setNotify(false)
     setError('')
   }, [lesson, defaultDate, clone, open])
 
@@ -81,7 +90,7 @@ export default function LessonFormDialog({ open, lesson, defaultDate, clone, onC
       if (lesson && !clone) {
         await updateLesson(lesson.lesson_id, payload)
       } else {
-        await createLesson(payload)
+        await createLesson({ ...payload, send_email: notify })
       }
       onSaved()
     } catch (err) {
@@ -200,6 +209,20 @@ export default function LessonFormDialog({ open, lesson, defaultDate, clone, onC
                   renderInput={(params) => <TextField {...params} label="Library Items" />}
                 />
               </Grid>
+              {(!lesson || clone) && (
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={notify}
+                        onChange={(e) => setNotify(e.target.checked)}
+                        size="small"
+                      />
+                    }
+                    label={<Typography variant="body2">Notify participants by email</Typography>}
+                  />
+                </Grid>
+              )}
               {error && (
                 <Grid item xs={12}>
                   <Typography color="error" variant="body2">{error}</Typography>
