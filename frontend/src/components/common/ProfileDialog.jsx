@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, Grid, Alert,
+  Button, TextField, Grid, Alert, Box, Link,
 } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { updateProfile } from '../../api/authApi'
 import { useAuth } from '../../context/AuthContext'
 
@@ -60,11 +61,16 @@ export default function ProfileDialog({ open, onClose }) {
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving...' : 'Save'}
-        </Button>
+      <DialogActions sx={{ justifyContent: 'space-between' }}>
+        <Link component={RouterLink} to="/forgot-password" variant="body2" sx={{ ml: 1 }} onClick={onClose}>
+          Forgot password?
+        </Link>
+        <Box>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button variant="contained" onClick={handleSave} disabled={saving} sx={{ ml: 1 }}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   )
