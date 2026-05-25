@@ -79,6 +79,10 @@ def create_lesson():
         db.session.add(LessonLibrary(lesson_id=lesson.lesson_id, library_id=lid))
 
     db.session.commit()
+
+    if data.get("send_email"):
+        _send_new_lesson_notification(lesson)
+
     return jsonify(lesson.to_dict()), 201
 
 
@@ -233,6 +237,50 @@ def _build_lesson_details_html(lesson):
           </div>"""
 
     return dt_str, assignment_block, library_block
+
+
+def _send_new_lesson_notification(lesson):
+    """Send email to all lesson participants when a new lesson is scheduled."""
+    resend.api_key = current_app.config["RESEND_API_KEY"]
+    from_addr = current_app.config["RESEND_FROM"]
+
+    participants = [lu.user for lu in lesson.lesson_users]
+    if not participants:
+        return
+
+    dt_str, assignment_block, library_block = _build_lesson_details_html(lesson)
+
+    subject = f"New Lesson Scheduled: {lesson.description}"
+    for participant in participants:
+        first = participant.first_nm or "there"
+        body_html = f"""
+        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px">
+          <h2 style="color:#1976d2;margin-bottom:8px">New Lesson Scheduled</h2>
+          <p>Hi {first},</p>
+          <p>A new lesson has been scheduled for you. Here are the details:</p>
+          <div style="background:#f9f9f9;border-left:4px solid #1976d2;padding:12px 16px;margin-top:16px;border-radius:4px">
+            <div><strong>Lesson</strong>
+              <p style="margin:4px 0;color:#444">{lesson.description}</p>
+            </div>
+            <div style="margin-top:12px"><strong>Date &amp; Time</strong>
+              <p style="margin:4px 0;color:#444">{dt_str}</p>
+            </div>
+            {assignment_block}
+            {library_block}
+          </div>
+          <p style="margin-top:16px">Log in to MuSchool to view full lesson details.</p>
+          <p style="font-size:12px;color:#888;margin-top:24px">MuSchool</p>
+        </div>
+        """
+        try:
+            resend.Emails.send({
+                "from": from_addr,
+                "to": [participant.email],
+                "subject": subject,
+                "html": body_html,
+            })
+        except Exception:
+            logger.exception("Failed to send new lesson notification to %s", participant.email)
 
 
 def _send_lesson_notification(lesson, action):
