@@ -62,8 +62,8 @@ export default function ProfileDialog({ open, onClose }) {
         </Grid>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'space-between' }}>
-        <Link component={RouterLink} to="/forgot-password" variant="body2" sx={{ ml: 1 }} onClick={onClose}>
-          Forgot password?
+        <Link component={RouterLink} to="/forgot-password" variant="body2" sx={{ ml: '18px' }} onClick={onClose}>
+          Change Password
         </Link>
         <Box>
           <Button onClick={onClose}>Cancel</Button>

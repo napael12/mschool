@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, Alert,
+  Button, TextField, Alert, FormControlLabel, Switch, Typography,
 } from '@mui/material'
 import { createLibraryItem, updateLibraryItem } from '../../api/libraryApi'
 
-const empty = { title: '', link: '' }
+const empty = { title: '', link: '', is_public: false }
 
 export default function LibraryFormDialog({ open, item, onClose, onSaved }) {
   const [form, setForm] = useState(empty)
@@ -13,7 +13,7 @@ export default function LibraryFormDialog({ open, item, onClose, onSaved }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    setForm(item ? { title: item.title, link: item.link } : empty)
+    setForm(item ? { title: item.title, link: item.link, is_public: item.is_public ?? false } : empty)
     setError('')
   }, [item, open])
 
@@ -42,7 +42,7 @@ export default function LibraryFormDialog({ open, item, onClose, onSaved }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{item ? 'Edit Library Item' : 'Add Library Item'}</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 3, overflow: 'visible' }}>
         {error && <Alert severity="error">{error}</Alert>}
         <TextField
           label="Title"
@@ -60,6 +60,20 @@ export default function LibraryFormDialog({ open, item, onClose, onSaved }) {
           onChange={set('link')}
           inputProps={{ maxLength: 2000 }}
           placeholder="https://..."
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={form.is_public}
+              onChange={(e) => setForm((f) => ({ ...f, is_public: e.target.checked }))}
+              color="primary"
+            />
+          }
+          label={
+            <Typography variant="body2">
+              {form.is_public ? 'Public — visible to all users' : 'Private — visible only to you and your students'}
+            </Typography>
+          }
         />
       </DialogContent>
       <DialogActions>

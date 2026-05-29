@@ -104,7 +104,7 @@ export default function LessonFormDialog({ open, lesson, defaultDate, clone, onC
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
         <DialogTitle>{clone ? 'Clone Lesson' : lesson ? 'Edit Lesson' : 'New Lesson'}</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
+        <DialogContent sx={{ pt: 3, overflow: 'visible' }}>
           {loadingUsers ? (
             <Box display="flex" justifyContent="center" py={4}>
               <CircularProgress size={28} />

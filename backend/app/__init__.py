@@ -66,6 +66,9 @@ def create_app():
                   END IF;
                 END $$;
             """))
+            db.session.execute(text(
+                "ALTER TABLE library ADD COLUMN IF NOT EXISTS is_public BOOLEAN NOT NULL DEFAULT FALSE"
+            ))
             db.session.commit()
             logger.info("lessons schema migrations completed")
     except Exception:

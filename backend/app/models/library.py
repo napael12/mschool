@@ -7,6 +7,7 @@ class Library(db.Model):
     library_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     link = db.Column(db.String(2000), nullable=False)
+    is_public = db.Column(db.Boolean, nullable=False, default=False)
     created_by = db.Column(db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
 
     creator = db.relationship("User", foreign_keys=[created_by])
@@ -17,6 +18,7 @@ class Library(db.Model):
             "library_id": self.library_id,
             "title": self.title,
             "link": self.link,
+            "is_public": self.is_public,
             "created_by": self.created_by,
             "creator": self.creator.to_dict() if self.creator else None,
         }

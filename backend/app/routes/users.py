@@ -9,6 +9,7 @@ import resend
 from app.extensions import db
 from app.models.user import User
 from app.models.password_reset import PasswordResetToken
+from app.models.credit import Credit
 from app.utils.auth_helpers import require_roles, get_current_user
 
 logger = logging.getLogger(__name__)
@@ -182,6 +183,114 @@ def admin_send_password_reset(user_id):
     return jsonify({"message": f"Password reset email sent to {user.email}."})
 
 
+def _teacher_name(teacher):
+    return f"{teacher.first_nm or ''} {teacher.last_nm or ''}".strip() or teacher.email
+
+
+def _send_new_student_invite(student, teacher, reset_link):
+    """Email a newly created student with login credentials and a password-set link."""
+    resend.api_key = current_app.config["RESEND_API_KEY"]
+    first = student.first_nm or "there"
+    teacher_name = _teacher_name(teacher)
+    try:
+        resend.Emails.send({
+            "from": current_app.config["RESEND_FROM"],
+            "to": [student.email],
+            "subject": f"You've been invited to MuSchool by {teacher_name}",
+            "html": f"""
+            <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px">
+              <h2 style="color:#1976d2">Welcome to MuSchool!</h2>
+              <p>Hi {first},</p>
+              <p><strong>{teacher_name}</strong> has invited you to MuSchool — a free platform
+                 for managing music lessons.</p>
+              <p>Click the button below to set your password and get started:</p>
+              <p style="text-align:center;margin:32px 0">
+                <a href="{reset_link}"
+                   style="background:#1976d2;color:#fff;padding:12px 28px;
+                          border-radius:6px;text-decoration:none;font-weight:600">
+                  Set Password &amp; Sign In
+                </a>
+              </p>
+              <p style="font-size:12px;color:#888;margin-top:24px">MuSchool</p>
+            </div>
+            """,
+        })
+    except Exception:
+        logger.exception("Failed to send new-student invite email to %s", student.email)
+
+
+def _send_existing_student_invite(student, teacher):
+    """Email an existing student that a new teacher has connected with them."""
+    resend.api_key = current_app.config["RESEND_API_KEY"]
+    first = student.first_nm or "there"
+    teacher_name = _teacher_name(teacher)
+    frontend_url = current_app.config["FRONTEND_URL"].rstrip("/")
+    try:
+        resend.Emails.send({
+            "from": current_app.config["RESEND_FROM"],
+            "to": [student.email],
+            "subject": f"{teacher_name} has invited you to take lessons on MuSchool",
+            "html": f"""
+            <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px">
+              <h2 style="color:#1976d2">New Teacher Invitation</h2>
+              <p>Hi {first},</p>
+              <p><strong>{teacher_name}</strong> has invited you to work together on MuSchool.</p>
+              <p>Log in to view your upcoming lessons and assignments:</p>
+              <p style="text-align:center;margin:32px 0">
+                <a href="{frontend_url}/sign-in"
+                   style="background:#1976d2;color:#fff;padding:12px 28px;
+                          border-radius:6px;text-decoration:none;font-weight:600">
+                  Go to MuSchool
+                </a>
+              </p>
+              <p style="font-size:12px;color:#888;margin-top:24px">MuSchool</p>
+            </div>
+            """,
+        })
+    except Exception:
+        logger.exception("Failed to send existing-student invite email to %s", student.email)
+
+
+@users_bp.route("/add-student", methods=["POST"])
+@jwt_required()
+def add_student():
+    current = get_current_user()
+    if current.profile not in ("Admin", "Teacher"):
+        return jsonify({"error": "Forbidden"}), 403
+
+    data = request.get_json()
+    email = (data.get("email") or "").strip().lower()
+    if not email:
+        return jsonify({"error": "email is required"}), 400
+
+    existing = User.query.filter_by(email=email).first()
+
+    if existing:
+        if existing.profile != "Student":
+            return jsonify({"error": "An account with this email is not a student."}), 409
+        student = existing
+    else:
+        student = User(
+            email=email,
+            first_nm=data.get("first_nm"),
+            last_nm=data.get("last_nm"),
+            profile="Student",
+            password_hash=hash_password(DEFAULT_PASSWORD),
+        )
+        db.session.add(student)
+        db.session.flush()
+
+    if current.profile == "Teacher":
+        credit = Credit.query.filter_by(
+            teacher_id=current.user_id, student_id=student.user_id
+        ).first()
+        if not credit:
+            db.session.add(Credit(teacher_id=current.user_id, student_id=student.user_id, balance=0))
+
+    db.session.commit()
+    return jsonify({"message": "Student added.", "user": student.to_dict()}), 200
+
+
 @users_bp.route("/invite", methods=["POST"])
 @jwt_required()
 def invite_user():
@@ -191,20 +300,48 @@ def invite_user():
 
     data = request.get_json()
     email = (data.get("email") or "").strip().lower()
-    profile = data.get("profile")
-    if not email or not profile:
-        return jsonify({"error": "email and profile are required"}), 400
-    if User.query.filter_by(email=email).first():
-        return jsonify({"error": "Email already exists"}), 409
+    if not email:
+        return jsonify({"error": "email is required"}), 400
 
-    user = User(
+    existing = User.query.filter_by(email=email).first()
+
+    if existing:
+        if existing.profile != "Student":
+            return jsonify({"error": "An account with this email already exists."}), 409
+
+        # Existing student — ensure credit record exists, then send invite email
+        if current.profile == "Teacher":
+            credit = Credit.query.filter_by(
+                teacher_id=current.user_id, student_id=existing.user_id
+            ).first()
+            if not credit:
+                db.session.add(Credit(teacher_id=current.user_id, student_id=existing.user_id, balance=0))
+                db.session.commit()
+
+        _send_existing_student_invite(existing, current)
+        return jsonify({"message": f"Invitation sent to {email}.", "user": existing.to_dict()}), 200
+
+    # New student — create account, credit record, and send invite with password-set link
+    profile = data.get("profile") or "Student"
+    student = User(
         email=email,
+        first_nm=data.get("first_nm"),
+        last_nm=data.get("last_nm"),
         profile=profile,
         password_hash=hash_password(DEFAULT_PASSWORD),
     )
-    db.session.add(user)
+    db.session.add(student)
+    db.session.flush()
+
+    if current.profile == "Teacher":
+        db.session.add(Credit(teacher_id=current.user_id, student_id=student.user_id, balance=0))
+
+    reset_token = PasswordResetToken.generate(student.user_id)
+    db.session.add(reset_token)
     db.session.commit()
 
-    # Stub: in production send a real invite email
-    print(f"[INVITE] Sent invite to {email} as {profile} (invited by {current.email})")
-    return jsonify({"message": f"Invite sent to {email}", "user": user.to_dict()}), 201
+    frontend_url = current_app.config["FRONTEND_URL"].rstrip("/")
+    reset_link = f"{frontend_url}/reset-password?token={reset_token.token}"
+    _send_new_student_invite(student, current, reset_link)
+
+    return jsonify({"message": f"Invite sent to {email}.", "user": student.to_dict()}), 201

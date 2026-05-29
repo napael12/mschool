@@ -7,7 +7,7 @@ import { adjustCredits } from '../../api/creditsApi'
 import { listParticipants } from '../../api/usersApi'
 import { useAuth } from '../../context/AuthContext'
 
-export default function AddCreditsDialog({ open, defaultStudentId, defaultTeacherId, onClose, onSaved }) {
+export default function AddCreditsDialog({ open, defaultStudentId, defaultTeacherId, onClose, onSaved, allowedStudents }) {
   const { user, hasRole } = useAuth()
   const isAdmin = hasRole('Admin')
 
@@ -22,10 +22,18 @@ export default function AddCreditsDialog({ open, defaultStudentId, defaultTeache
 
   useEffect(() => {
     if (!open) return
-    listParticipants().then((users) => {
-      setTeachers(users.filter((u) => u.profile === 'Teacher'))
-      setStudents(users.filter((u) => u.profile === 'Student'))
-    })
+    if (isAdmin) {
+      listParticipants().then((users) => {
+        setTeachers(users.filter((u) => u.profile === 'Teacher'))
+        setStudents(users.filter((u) => u.profile === 'Student'))
+      })
+    } else if (allowedStudents) {
+      setStudents(allowedStudents)
+    } else {
+      listParticipants().then((users) => {
+        setStudents(users.filter((u) => u.profile === 'Student'))
+      })
+    }
     setTeacherId(defaultTeacherId || (isAdmin ? '' : user?.user_id) || '')
     setStudentId(defaultStudentId || '')
     setAction('add')
@@ -55,17 +63,19 @@ export default function AddCreditsDialog({ open, defaultStudentId, defaultTeache
     }
   }
 
+  const nameOf = (u) => u ? `${u.first_nm || ''} ${u.last_nm || ''}`.trim() || u.email : ''
+
   const selectedStudent = students.find((s) => s.user_id === parseInt(studentId))
   const selectedTeacher = isAdmin
     ? teachers.find((t) => t.user_id === parseInt(teacherId))
     : user
 
-  const nameOf = (u) => u ? `${u.first_nm || ''} ${u.last_nm || ''}`.trim() || u.email : ''
+  const studentLocked = !isAdmin && Boolean(defaultStudentId)
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Adjust Credits</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 3, overflow: 'visible' }}>
         {error && <Alert severity="error">{error}</Alert>}
 
         {isAdmin && (
@@ -82,17 +92,26 @@ export default function AddCreditsDialog({ open, defaultStudentId, defaultTeache
           </TextField>
         )}
 
-        <TextField
-          select
-          label="Student"
-          value={studentId}
-          onChange={(e) => setStudentId(e.target.value)}
-          fullWidth
-        >
-          {students.map((s) => (
-            <MenuItem key={s.user_id} value={s.user_id}>{nameOf(s)}</MenuItem>
-          ))}
-        </TextField>
+        {studentLocked ? (
+          <TextField
+            label="Student"
+            value={nameOf(selectedStudent)}
+            fullWidth
+            InputProps={{ readOnly: true }}
+          />
+        ) : (
+          <TextField
+            select
+            label="Student"
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            fullWidth
+          >
+            {students.map((s) => (
+              <MenuItem key={s.user_id} value={s.user_id}>{nameOf(s)}</MenuItem>
+            ))}
+          </TextField>
+        )}
 
         <Box display="flex" gap={1}>
           <TextField

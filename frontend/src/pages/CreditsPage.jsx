@@ -5,9 +5,13 @@ import {
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
+import PersonAddIcon from '@mui/icons-material/PersonAdd'
+import EmailIcon from '@mui/icons-material/Email'
 import { getCredits } from '../api/creditsApi'
 import { useAuth } from '../context/AuthContext'
 import AddCreditsDialog from '../components/credits/AddCreditsDialog'
+import AddStudentDialog from '../components/credits/AddStudentDialog'
+import InviteStudentDialog from '../components/credits/InviteStudentDialog'
 
 function nameOf(u) {
   return u ? `${u.first_nm || ''} ${u.last_nm || ''}`.trim() || u.email : '—'
@@ -33,7 +37,9 @@ export default function CreditsPage() {
 
   const [credits, setCredits] = useState([])
   const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [creditsDialogOpen, setCreditsDialogOpen] = useState(false)
+  const [addStudentOpen, setAddStudentOpen] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
   const [defaultStudentId, setDefaultStudentId] = useState(null)
   const [defaultTeacherId, setDefaultTeacherId] = useState(null)
   const [snack, setSnack] = useState(null)
@@ -41,27 +47,54 @@ export default function CreditsPage() {
   const load = () => getCredits().then(setCredits).finally(() => setLoading(false))
   useEffect(() => { load() }, [])
 
-  const openAdd = (studentId = null, teacherId = null) => {
+  const openAdjust = (studentId = null, teacherId = null) => {
     setDefaultStudentId(studentId)
     setDefaultTeacherId(teacherId)
-    setDialogOpen(true)
+    setCreditsDialogOpen(true)
   }
 
   const handleSaved = () => {
-    setDialogOpen(false)
+    setCreditsDialogOpen(false)
     setSnack({ severity: 'success', message: 'Credits updated.' })
     load()
   }
 
+  const handleStudentAdded = (message) => {
+    setAddStudentOpen(false)
+    load()
+    setSnack({ severity: 'success', message: message || 'Student added.' })
+  }
+
+  const handleInvited = (message) => {
+    setInviteOpen(false)
+    load()
+    setSnack({ severity: 'success', message: message || 'Invitation sent.' })
+  }
+
+  const pageTitle = isAdmin ? 'Student/Credits' : isTeacher ? 'Students' : 'Credits'
+  const colSpan = isAdmin ? 4 : isTeacher ? 3 : 2
+
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" fontWeight={700}>Credits</Typography>
-        {(isAdmin || isTeacher) && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => openAdd()}>
-            Adjust Credits
-          </Button>
-        )}
+        <Typography variant="h4" fontWeight={700}>{pageTitle}</Typography>
+        <Box display="flex" gap={1}>
+          {isTeacher && (
+            <Button variant="outlined" startIcon={<PersonAddIcon />} onClick={() => setAddStudentOpen(true)}>
+              Add Student
+            </Button>
+          )}
+          {isTeacher && (
+            <Button variant="outlined" startIcon={<EmailIcon />} onClick={() => setInviteOpen(true)}>
+              Invite Student
+            </Button>
+          )}
+          {(isAdmin || isTeacher) && (
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => openAdjust()}>
+              Adjust Credits
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {loading ? (
@@ -72,9 +105,8 @@ export default function CreditsPage() {
             <Table>
               <TableHead>
                 <TableRow>
-                  {/* Admin sees both teacher and student columns */}
                   {isAdmin && <TableCell>Teacher</TableCell>}
-                  {/* Teacher sees student column; student sees teacher column */}
+                  {isAdmin && <TableCell>Student</TableCell>}
                   {!isAdmin && <TableCell>{isTeacher ? 'Student' : 'Teacher'}</TableCell>}
                   <TableCell align="center">Balance</TableCell>
                   {(isAdmin || isTeacher) && <TableCell align="right">Actions</TableCell>}
@@ -83,7 +115,7 @@ export default function CreditsPage() {
               <TableBody>
                 {credits.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 3 : 2} align="center" sx={{ color: 'text.secondary' }}>
+                    <TableCell colSpan={colSpan} align="center" sx={{ color: 'text.secondary' }}>
                       No credit records found.
                     </TableCell>
                   </TableRow>
@@ -91,12 +123,10 @@ export default function CreditsPage() {
                   credits.map((c) => (
                     <TableRow key={`${c.teacher_id}-${c.student_id}`} hover>
                       {isAdmin && <TableCell>{nameOf(c.teacher)}</TableCell>}
-                      {!isAdmin && (
-                        <TableCell>
-                          {nameOf(isTeacher ? c.student : c.teacher)}
-                        </TableCell>
-                      )}
                       {isAdmin && <TableCell>{nameOf(c.student)}</TableCell>}
+                      {!isAdmin && (
+                        <TableCell>{nameOf(isTeacher ? c.student : c.teacher)}</TableCell>
+                      )}
                       <TableCell align="center">
                         <BalanceChip value={c.balance} />
                       </TableCell>
@@ -104,7 +134,7 @@ export default function CreditsPage() {
                         <TableCell align="right">
                           <IconButton
                             size="small"
-                            onClick={() => openAdd(c.student_id, isAdmin ? c.teacher_id : null)}
+                            onClick={() => openAdjust(c.student_id, isAdmin ? c.teacher_id : null)}
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>
@@ -120,11 +150,24 @@ export default function CreditsPage() {
       )}
 
       <AddCreditsDialog
-        open={dialogOpen}
+        open={creditsDialogOpen}
         defaultStudentId={defaultStudentId}
         defaultTeacherId={defaultTeacherId}
-        onClose={() => setDialogOpen(false)}
+        onClose={() => setCreditsDialogOpen(false)}
         onSaved={handleSaved}
+        allowedStudents={isTeacher ? credits.map((c) => c.student).filter(Boolean) : undefined}
+      />
+
+      <AddStudentDialog
+        open={addStudentOpen}
+        onClose={() => setAddStudentOpen(false)}
+        onAdded={handleStudentAdded}
+      />
+
+      <InviteStudentDialog
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        onInvited={handleInvited}
       />
 
       <Snackbar

@@ -20,7 +20,7 @@ export default function UserFormDialog({ open, user, onClose, onSave }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{user ? 'Edit User' : 'Add User'}</DialogTitle>
-      <DialogContent sx={{ pt: 2 }}>
+      <DialogContent sx={{ pt: 3, overflow: 'visible' }}>
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <TextField label="First Name" fullWidth value={form.first_nm || ''} onChange={set('first_nm')} />

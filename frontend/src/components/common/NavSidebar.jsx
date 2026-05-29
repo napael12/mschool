@@ -55,6 +55,10 @@ export default function NavSidebar() {
       <List sx={{ px: 1, flexGrow: 1 }}>
         {visible.map((item) => {
           const active = location.pathname === item.path
+          let label = item.label
+          if (item.path === '/credits') {
+            label = hasRole('Admin') ? 'Student/Credits' : hasRole('Teacher') ? 'Students' : 'Credits'
+          }
           return (
             <ListItemButton
               key={item.path}
@@ -72,7 +76,7 @@ export default function NavSidebar() {
               }}
             >
               <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} primaryTypographyProps={{ fontSize: 14, fontWeight: active ? 700 : 400 }} />
+              <ListItemText primary={label} primaryTypographyProps={{ fontSize: 14, fontWeight: active ? 700 : 400 }} />
             </ListItemButton>
           )
         })}

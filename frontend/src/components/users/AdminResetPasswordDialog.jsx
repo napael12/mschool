@@ -56,7 +56,7 @@ export default function AdminResetPasswordDialog({ open, user, onClose, onSave }
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
       <DialogTitle>Set Password — {name}</DialogTitle>
-      <DialogContent sx={{ pt: 2 }}>
+      <DialogContent sx={{ pt: 3, overflow: 'visible' }}>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
         <TextField

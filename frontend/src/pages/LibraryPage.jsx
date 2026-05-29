@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import {
   Box, Typography, Card, Table, TableHead, TableBody, TableRow, TableCell,
   TableContainer, IconButton, Button, TextField, InputAdornment,
-  CircularProgress, Snackbar, Alert, Link,
+  CircularProgress, Snackbar, Alert, Link, Chip, Tooltip,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import SearchIcon from '@mui/icons-material/Search'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import PublicIcon from '@mui/icons-material/Public'
+import LockIcon from '@mui/icons-material/Lock'
 import { listLibrary, deleteLibraryItem } from '../api/libraryApi'
 import { useAuth } from '../context/AuthContext'
 import LibraryFormDialog from '../components/library/LibraryFormDialog'
@@ -15,6 +17,7 @@ import ConfirmDialog from '../components/common/ConfirmDialog'
 
 export default function LibraryPage() {
   const { user, hasRole } = useAuth()
+  const isStudent = hasRole('Student')
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -61,9 +64,11 @@ export default function LibraryPage() {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" fontWeight={700}>Library</Typography>
-        <Button variant="contained" onClick={() => { setEditItem(null); setFormOpen(true) }}>
-          + Add Item
-        </Button>
+        {!isStudent && (
+          <Button variant="contained" onClick={() => { setEditItem(null); setFormOpen(true) }}>
+            + Add Item
+          </Button>
+        )}
       </Box>
 
       <Card>
@@ -94,7 +99,8 @@ export default function LibraryPage() {
                   <TableCell>Title</TableCell>
                   <TableCell>Link</TableCell>
                   <TableCell>Shared By</TableCell>
-                  <TableCell align="right">Actions</TableCell>
+                  {!isStudent && <TableCell>Visibility</TableCell>}
+                  {!isStudent && <TableCell align="right">Actions</TableCell>}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -121,30 +127,45 @@ export default function LibraryPage() {
                         ? `${item.creator.first_nm || ''} ${item.creator.last_nm || ''}`.trim() || item.creator.email
                         : '—'}
                     </TableCell>
-                    <TableCell align="right">
-                      {canModify(item) && (
-                        <>
-                          <IconButton
+                    {!isStudent && (
+                      <TableCell>
+                        <Tooltip title={item.is_public ? 'Visible to all users' : 'Visible only to you and your students'}>
+                          <Chip
                             size="small"
-                            onClick={() => { setEditItem(item); setFormOpen(true) }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => setDeleteTarget(item)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </>
-                      )}
-                    </TableCell>
+                            icon={item.is_public ? <PublicIcon /> : <LockIcon />}
+                            label={item.is_public ? 'Public' : 'Private'}
+                            color={item.is_public ? 'success' : 'default'}
+                            variant={item.is_public ? 'filled' : 'outlined'}
+                          />
+                        </Tooltip>
+                      </TableCell>
+                    )}
+                    {!isStudent && (
+                      <TableCell align="right">
+                        {canModify(item) && (
+                          <>
+                            <IconButton
+                              size="small"
+                              onClick={() => { setEditItem(item); setFormOpen(true) }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => setDeleteTarget(item)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} align="center" sx={{ color: 'text.secondary' }}>
+                    <TableCell colSpan={isStudent ? 3 : 5} align="center" sx={{ color: 'text.secondary' }}>
                       No library items found.
                     </TableCell>
                   </TableRow>
