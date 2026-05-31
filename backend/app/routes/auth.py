@@ -1,6 +1,6 @@
 import re
 import logging
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
 import bcrypt
 import resend
@@ -10,6 +10,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from app.extensions import db
 from app.models.user import User
 from app.models.password_reset import PasswordResetToken
+from app.models.user_visit import UserVisit
 
 auth_bp = Blueprint("auth", __name__)
 logger = logging.getLogger(__name__)
@@ -83,6 +84,11 @@ def login():
 
     expires = timedelta(days=60) if remember_me else timedelta(hours=8)
     token = create_access_token(identity=str(user.user_id), expires_delta=expires)
+
+    now = datetime.now(timezone.utc)
+    db.session.add(UserVisit(user_id=user.user_id, login_at=now, last_seen_at=now))
+    db.session.commit()
+
     return jsonify({"access_token": token, "user": user.to_dict()})
 
 

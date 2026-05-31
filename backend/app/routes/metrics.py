@@ -1,9 +1,10 @@
-from flask import jsonify
+from flask import jsonify, request
 from sqlalchemy import func
 from app.extensions import db
 from app.models.user import User
 from app.models.lesson import Lesson
 from app.models.lesson_user import LessonUser
+from app.models.user_visit import UserVisit
 from app.utils.auth_helpers import require_roles
 from flask import Blueprint
 
@@ -75,3 +76,16 @@ def teacher_metrics():
         })
 
     return jsonify(result)
+
+
+@metrics_bp.route("/visits", methods=["GET"])
+@require_roles("Admin")
+def get_visits():
+    limit = min(int(request.args.get("limit", 200)), 500)
+    visits = (
+        UserVisit.query
+        .order_by(UserVisit.login_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return jsonify([v.to_dict() for v in visits])

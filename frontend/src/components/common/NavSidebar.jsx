@@ -4,6 +4,7 @@ import PeopleIcon from '@mui/icons-material/People'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import MenuBookIcon from '@mui/icons-material/MenuBook'
 import CreditScoreIcon from '@mui/icons-material/CreditScore'
+import BarChartIcon from '@mui/icons-material/BarChart'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
   { label: 'Library', icon: <MenuBookIcon />, path: '/library', roles: null },
   { label: 'Credits', icon: <CreditScoreIcon />, path: '/credits', roles: null },
   { label: 'Users', icon: <PeopleIcon />, path: '/users', roles: ['Admin'] },
+  { label: 'Visits', icon: <BarChartIcon />, path: '/visits', roles: ['Admin'] },
 ]
 
 export default function NavSidebar() {

@@ -69,6 +69,14 @@ def create_app():
             db.session.execute(text(
                 "ALTER TABLE library ADD COLUMN IF NOT EXISTS is_public BOOLEAN NOT NULL DEFAULT FALSE"
             ))
+            db.session.execute(text("""
+                CREATE TABLE IF NOT EXISTS user_visits (
+                    visit_id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                    login_at TIMESTAMPTZ NOT NULL,
+                    last_seen_at TIMESTAMPTZ NOT NULL
+                )
+            """))
             db.session.commit()
             logger.info("lessons schema migrations completed")
     except Exception:
@@ -95,6 +103,33 @@ def create_app():
         logger.info("← %s %s  %d  %.1f ms",
                     request.method, request.path,
                     response.status_code, elapsed_ms)
+        return response
+
+    # ------------------------------------------------------------------ #
+    # Visit tracking — update last_seen_at on authenticated requests      #
+    # ------------------------------------------------------------------ #
+    from datetime import datetime, timezone as _tz
+    from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+
+    @app.after_request
+    def _track_last_seen(response):
+        try:
+            verify_jwt_in_request(optional=True)
+            uid = get_jwt_identity()
+            if uid:
+                from app.models.user_visit import UserVisit
+                now = datetime.now(_tz.utc)
+                visit = (
+                    UserVisit.query
+                    .filter_by(user_id=int(uid))
+                    .order_by(UserVisit.login_at.desc())
+                    .first()
+                )
+                if visit and (now - visit.last_seen_at).total_seconds() > 60:
+                    visit.last_seen_at = now
+                    db.session.commit()
+        except Exception:
+            pass
         return response
 
     # ------------------------------------------------------------------ #

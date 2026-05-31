@@ -9,6 +9,7 @@ import UsersPage from '../pages/UsersPage'
 import LessonsPage from '../pages/LessonsPage'
 import LibraryPage from '../pages/LibraryPage'
 import CreditsPage from '../pages/CreditsPage'
+import VisitsPage from '../pages/VisitsPage'
 import NotFoundPage from '../pages/NotFoundPage'
 
 export default function AppRouter() {
@@ -37,6 +38,14 @@ export default function AppRouter() {
         <Route path="/lessons" element={<LessonsPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/credits" element={<CreditsPage />} />
+        <Route
+          path="/visits"
+          element={
+            <ProtectedRoute roles={['Admin']}>
+              <VisitsPage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />
