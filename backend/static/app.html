@@ -332,11 +332,7 @@
 			function handleOpenApp(e) {
 				if (e) e.preventDefault();
 				var token = localStorage.getItem('mschool_token') || sessionStorage.getItem('mschool_token');
-				if (token) {
-					window.location.href = '/lessons';
-				} else {
-					openSignIn(e);
-				}
+				window.location.href = token ? '/lessons' : '/sign-in';
 			}
 			function closeSignIn() {
 				document.getElementById('signin-overlay').classList.remove('active');
