@@ -167,7 +167,7 @@
 							<li><a href="#cta">Get Started</a></li>
 						</ul>
 						<ul class="actions stacked">
-							<li><a href="https://muschool.app/" class="button primary fit">Open MuSchool</a></li>
+							<li><a href="#" onclick="handleOpenApp(event)" class="button primary fit">Open MuSchool</a></li>
 						</ul>
 					</nav>
 
@@ -181,7 +181,7 @@
 								<p>MuSchool is a <strong>free</strong> platform built specifically for music teachers and students — giving you everything you need to run your lessons smoothly, all in one place.</p>
 
 								<ul class="actions">
-									<li><a href="https://muschool.app/" class="button next scrolly">Open MuSchool &rarr;</a></li>
+									<li><a href="#" onclick="handleOpenApp(event)" class="button next scrolly">Open MuSchool &rarr;</a></li>
 									<li><a href="#features" class="button scrolly">See Features</a></li>
 								</ul>
 							</div>
@@ -267,7 +267,7 @@
 									</header>
 									<p>MuSchool is completely free — no trials, no credit cards, no hidden fees. We believe every teacher and student deserves great tools regardless of the size of their studio. Sign up in seconds and invite your students the same day.</p>
 									<ul class="actions">
-										<li><a href="https://muschool.app/" class="button next">Get Started Free</a></li>
+										<li><a href="#" onclick="handleOpenApp(event)" class="button next">Get Started Free</a></li>
 									</ul>
 								</div>
 							</section>
@@ -280,7 +280,7 @@
 									</header>
 									<p>Join teachers and students already using MuSchool to stay organized, stay in sync, and spend more time making music. It takes less than a minute to get started — and it's free.</p>
 									<ul class="actions">
-										<li><a href="https://muschool.app/" class="button next">Open MuSchool</a></li>
+										<li><a href="#" onclick="handleOpenApp(event)" class="button next">Open MuSchool</a></li>
 									</ul>
 								</div>
 							</section>
@@ -329,6 +329,15 @@
 				document.getElementById('signin-overlay').classList.add('active');
 				document.getElementById('signin-email').focus();
 			}
+			function handleOpenApp(e) {
+				if (e) e.preventDefault();
+				var token = localStorage.getItem('mschool_token') || sessionStorage.getItem('mschool_token');
+				if (token) {
+					window.location.href = '/dashboard';
+				} else {
+					openSignIn(e);
+				}
+			}
 			function closeSignIn() {
 				document.getElementById('signin-overlay').classList.remove('active');
 				document.getElementById('signin-error').style.display = 'none';
@@ -368,7 +377,7 @@
 					} else {
 						sessionStorage.setItem('mschool_token', data.access_token);
 					}
-					window.location.href = '/lessons';
+					window.location.href = '/dashboard';
 				} catch (_) {
 					errEl.textContent = 'Could not connect. Please try again.';
 					errEl.style.display = 'block';

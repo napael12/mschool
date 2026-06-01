@@ -25,7 +25,7 @@ export default function SignInPage() {
     setLoading(true)
     try {
       await login(email, password, rememberMe)
-      navigate('/')
+      navigate('/dashboard')
     } catch {
       setError('Invalid email or password.')
     } finally {
