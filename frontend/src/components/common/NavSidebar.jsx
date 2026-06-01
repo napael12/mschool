@@ -9,7 +9,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', roles: null },
+  { label: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: null },
   { label: 'Lessons', icon: <CalendarMonthIcon />, path: '/lessons', roles: null },
   { label: 'Library', icon: <MenuBookIcon />, path: '/library', roles: null },
   { label: 'Credits', icon: <CreditScoreIcon />, path: '/credits', roles: null },

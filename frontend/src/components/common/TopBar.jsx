@@ -16,7 +16,7 @@ export default function TopBar({ drawerWidth, onMenuClick }) {
   const handleLogout = () => {
     setAnchor(null)
     logout()
-    window.location.href = '/'
+    navigate('/sign-in')
   }
 
   const handleEditProfile = () => {
