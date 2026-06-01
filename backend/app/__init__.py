@@ -20,7 +20,7 @@ STATIC_FOLDER = os.path.join(os.path.dirname(__file__), '..', 'static')
 
 
 def create_app():
-    app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='')
+    app = Flask(__name__, static_folder=STATIC_FOLDER)
     app.config.from_object(Config)
     app.config['STATIC_FOLDER'] = STATIC_FOLDER
 
