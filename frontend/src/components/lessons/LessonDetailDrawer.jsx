@@ -75,12 +75,13 @@ export default function LessonDetailDrawer({
   if (!lesson) return null
 
   const isCreator = lesson.created_by === currentUserId
-  const canEdit = isCreator
-  const canDelete = isCreator || isAdmin
+  const tooOld = dayjs().diff(dayjs(lesson.lesson_dt), 'hour') > 24
+  const canEdit = isCreator || isAdmin
+  const canDelete = (isCreator || isAdmin) && !tooOld
   const canApplyCredits = isCreator && !lesson.credits_applied && lesson.credit_cost > 0 && lesson.students?.length > 0
   const isCancelled = lesson.status === 'cancelled'
-  const canCancel = (isCreator || isAdmin) && !isCancelled
-  const canReschedule = (isCreator || isAdmin) && !isCancelled
+  const canCancel = (isCreator || isAdmin) && !isCancelled && !tooOld
+  const canReschedule = (isCreator || isAdmin) && !isCancelled && !tooOld
 
   const handleApplyCredits = async () => {
     setCreditError('')
