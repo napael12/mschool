@@ -150,9 +150,20 @@ export default function LessonDetailDrawer({
     }
   }
 
-  const commentLines = (lesson.comments || '')
+  const COMMENT_RE = /^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}) ([^\]]+)\]: (.+)$/
+  const comments = (lesson.comments || '')
     .split('\n')
     .filter(Boolean)
+    .map((line) => {
+      const m = line.match(COMMENT_RE)
+      return m ? { timestamp: m[1], author: m[2], text: m[3] } : { timestamp: '', author: '', text: line }
+    })
+
+  const meUser = [...(lesson.teachers || []), ...(lesson.students || [])]
+    .find((u) => u.user_id === currentUserId)
+  const currentUserName = meUser
+    ? `${meUser.first_nm || ''} ${meUser.last_nm || ''}`.trim() || meUser.email
+    : ''
 
   return (
     <>
@@ -320,14 +331,33 @@ export default function LessonDetailDrawer({
 
           <Typography variant="subtitle2" fontWeight={600} mb={1}>Comments</Typography>
           <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2 }}>
-            {commentLines.length === 0 ? (
+            {comments.length === 0 ? (
               <Typography variant="body2" color="text.secondary">No comments yet.</Typography>
             ) : (
-              commentLines.map((line, i) => (
-                <Typography key={i} variant="body2" sx={{ mb: 0.5, wordBreak: 'break-word' }}>
-                  {line}
-                </Typography>
-              ))
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {comments.map((c, i) => {
+                  const initials = c.author
+                    ? c.author.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+                    : '?'
+                  const isMine = c.author && c.author === currentUserName
+                  return (
+                    <Box key={i} display="flex" gap={1} alignItems="flex-start">
+                      <Avatar sx={{ width: 28, height: 28, fontSize: 12, bgcolor: isMine ? 'primary.main' : 'grey.400' }}>
+                        {initials}
+                      </Avatar>
+                      <Box>
+                        <Box display="flex" alignItems="baseline" gap={1}>
+                          <Typography variant="caption" fontWeight={700}>{c.author || 'Unknown'}</Typography>
+                          {c.timestamp && (
+                            <Typography variant="caption" color="text.disabled">{c.timestamp}</Typography>
+                          )}
+                        </Box>
+                        <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>{c.text}</Typography>
+                      </Box>
+                    </Box>
+                  )
+                })}
+              </Box>
             )}
           </Box>
 
