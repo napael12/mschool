@@ -173,17 +173,17 @@ def create_app():
     app.register_blueprint(library_bp, url_prefix="/api/library")
     app.register_blueprint(credits_bp, url_prefix="/api/credits")
 
-    # Serve landing page at root; React app for all other non-API routes
+    # Serve landing page at root; React SPA for all other non-API routes
     @app.route('/')
     def serve_landing():
-        return send_from_directory(app.static_folder, 'index.html')
+        return send_from_directory(app.static_folder, 'app.html')
 
     @app.route('/<path:path>')
     def serve_frontend(path):
         full_path = os.path.join(app.static_folder, path)
         if os.path.exists(full_path):
             return send_from_directory(app.static_folder, path)
-        return send_from_directory(app.static_folder, 'app.html')
+        return send_from_directory(app.static_folder, 'index.html')
 
     logger.info("All blueprints registered — app ready")
     return app
